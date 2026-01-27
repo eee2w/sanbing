@@ -14,7 +14,7 @@ st.markdown("---")
 # 已有资源部分
 st.subheader("📦 已有资源")
 
-# 创建每行资源的布局函数 - 修改为水平排列
+# 创建每行资源的布局函数
 def create_resource_input(label):
     col_num, col_unit = st.columns([4, 1])
     with col_num:
@@ -53,7 +53,7 @@ st.markdown("---")
 # 资源包数量部分
 st.subheader("🎁 资源包数量")
 
-# 创建资源包数量输入函数 - 也设为空值
+# 创建资源包数量输入函数
 def create_pack_input(label, description):
     col_label, col_input = st.columns([3, 1])
     with col_label:
