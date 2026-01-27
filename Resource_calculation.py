@@ -16,7 +16,7 @@ st.subheader("📦 已有资源")
 
 # 创建每行资源的布局函数
 def create_resource_input(label):
-    col_num, col_unit = st.columns([5, 1])
+    col_num, col_unit = st.columns([4, 1])
     with col_num:
         # 使用text_input而不是number_input，允许空值
         num_str = st.text_input(
@@ -55,7 +55,7 @@ st.subheader("🎁 资源包数量")
 
 # 创建资源包数量输入函数
 def create_pack_input(label, description):
-    col_label, col_input = st.columns([5, 1])
+    col_label, col_input = st.columns([3, 1])
     with col_label:
         st.markdown(f"**{label}**")
         st.caption(description)
@@ -78,9 +78,9 @@ def create_pack_input(label, description):
     return pack_value
 
 # 输入资源包数量
-pack_1w = create_pack_input("1w资源包数量")
-pack_10w = create_pack_input("10w资源包数量")
-pack_100w = create_pack_input("100w资源包数量")
+pack_1w = create_pack_input("1w资源包数量", "每个1万资源")
+pack_10w = create_pack_input("10w资源包数量", "每个10万资源")
+pack_100w = create_pack_input("100w资源包数量", "每个100万资源")
 
 st.markdown("---")
 
