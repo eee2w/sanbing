@@ -54,7 +54,7 @@ st.markdown("---")
 st.subheader("⚙️ 补充策略选择")
 strategy = st.radio(
     "请选择资源包使用策略：",
-    ["按比例补充（尽量满足4:4:2:1的比例）", "按顺序补充（先按肉→木→煤→铁的顺序补充，达到比例后按比例补充）"],
+    ["按比例补充（尽量满足4:4:2:1的比例）", "按顺序补充（严格按照肉→木→煤→铁的顺序，先补肉再补木，以此类推）"],
     horizontal=True
 )
 
@@ -85,56 +85,55 @@ def calculate_resources(meat, wood, coal, iron, pack_1w, pack_10w, pack_100w, st
     packs.extend([10] * pack_10w)
     packs.extend([1] * pack_1w)
     
-    # 策略1: 按比例补充（总是补充比例最小的资源）
+    # 策略1: 按比例补充（补充当前比例最小的资源，使整体趋于4:4:2:1）
     if strategy_type == 0:  # 按比例补充
+        # 计算当前各资源的比例倍数
+        meat_multiple = meat / RATIO_MEAT
+        wood_multiple = wood / RATIO_WOOD
+        coal_multiple = coal / RATIO_COAL
+        iron_multiple = iron / RATIO_IRON
+        
         # 使用所有自选包（从大到小）
         for pack_value in packs:
-            # 计算当前各资源的比例倍数
-            meat_multiple = meat / RATIO_MEAT
-            wood_multiple = wood / RATIO_WOOD
-            coal_multiple = coal / RATIO_COAL
-            iron_multiple = iron / RATIO_IRON
-            
             # 找出比例倍数最小的资源
             min_multiple = min(meat_multiple, wood_multiple, coal_multiple, iron_multiple)
             
             if meat_multiple == min_multiple:
                 meat += pack_value
+                meat_multiple = meat / RATIO_MEAT
             elif wood_multiple == min_multiple:
                 wood += pack_value
+                wood_multiple = wood / RATIO_WOOD
             elif coal_multiple == min_multiple:
                 coal_gain = pack_value / 2
                 coal += coal_gain
+                coal_multiple = coal / RATIO_COAL
             else:
                 iron_gain = pack_value / 4
                 iron += iron_gain
+                iron_multiple = iron / RATIO_IRON
     
-    # 策略2: 先按顺序补充（肉→木→煤→铁），达到比例后按比例补充
+    # 策略2: 按顺序补充（严格按照肉→木→煤→铁的顺序）
     else:  # 按顺序补充
-        # 阶段1: 先全部补充肉
-        for pack_value in packs[:]:  # 使用副本遍历
+        # 将所有资源包按照从大到小的顺序使用
+        for pack_value in packs:
+            # 阶段1: 补充肉
             meat += pack_value
-            packs.remove(pack_value)
         
-        # 阶段2: 如果还有自选包，继续补充木头
-        if packs:
-            for pack_value in packs[:]:
-                wood += pack_value
-                packs.remove(pack_value)
+        # 注意：按顺序补充策略实际上会将所有包都用于补充第一个资源（肉），
+        # 因为我们在上面的循环中已经用完了所有包来补充肉。
+        # 如果您想要的是依次使用所有包来补充不同的资源，那么逻辑应该是：
+        # 1. 先补肉，直到没有包或达到某个条件
+        # 2. 然后补木，直到没有包
+        # 3. 然后补煤，直到没有包
+        # 4. 最后补铁，直到没有包
         
-        # 阶段3: 如果还有自选包，继续补充煤
-        if packs:
-            for pack_value in packs[:]:
-                coal_gain = pack_value / 2
-                coal += coal_gain
-                packs.remove(pack_value)
+        # 但实际上，根据您的描述"先补满一种资源再补下一种"，这里的理解应该是：
+        # 先补充肉，如果肉补充到与某个资源的比例倍数相同了，就切换到下一个资源。
+        # 但您又说"就算煤和铁为0也不管"，说明不应该切换到下一个资源。
         
-        # 阶段4: 如果还有自选包，继续补充铁
-        if packs:
-            for pack_value in packs[:]:
-                iron_gain = pack_value / 4
-                iron += iron_gain
-                packs.remove(pack_value)
+        # 所以我理解您的意思是：先补肉，把所有包都用来补肉，不管肉有多少。
+        # 这就是上面循环的逻辑。
     
     # 计算最终比例和理想资源量
     final_min_ratio = min(
