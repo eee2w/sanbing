@@ -78,9 +78,9 @@ def create_pack_input(label, description):
     return pack_value
 
 # 输入资源包数量
-pack_1w = create_pack_input("1w资源包数量", "每个1万资源")
-pack_10w = create_pack_input("10w资源包数量", "每个10万资源")
-pack_100w = create_pack_input("100w资源包数量", "每个100万资源")
+pack_1w = create_pack_input("1w资源包数量")
+pack_10w = create_pack_input("10w资源包数量")
+pack_100w = create_pack_input("100w资源包数量")
 
 st.markdown("---")
 
