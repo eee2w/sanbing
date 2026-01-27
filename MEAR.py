@@ -5,7 +5,12 @@ import pandas as pd
 #材料自动兑换计算-Material Exchange Auto-Recommendation
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
 st.title("⚔️💎 神兵玉石自动升级计算器")
-st.caption("📝 提示：点击左上角双箭头图标填写积分和材料数量")
+st.info("""
+1、点击左上角双箭头填写积分和材料数量
+2、选择步兵比弓兵神兵玉石高多少级（默认神兵5级玉石2级）
+3、选择目前步兵弓兵上下神兵玉石等级
+4、点击计算得到结果
+""")
 st.markdown("---")
 
 # --- 版本选择 ---
