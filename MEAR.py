@@ -22,16 +22,16 @@ with st.sidebar:
     st.header("📝 资源与等级设置")
     
     # 全局积分
-    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=10000, step=100)
+    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=0, step=1)
     
     st.subheader("神兵材料库存")
-    CURRENT_WOOD = st.number_input("木头数量", min_value=0, value=1000, step=10)
-    CURRENT_MITHRIL = st.number_input("精金数量", min_value=0, value=500, step=5)
-    CURRENT_LAPIS = st.number_input("青金石数量", min_value=0, value=100, step=1)
+    CURRENT_WOOD = st.number_input("木头数量", min_value=0, value=0, step=1)
+    CURRENT_MITHRIL = st.number_input("精金数量", min_value=0, value=0, step=1)
+    CURRENT_LAPIS = st.number_input("青金石数量", min_value=0, value=0, step=1)
     
     st.subheader("玉石材料库存")
-    CURRENT_CARVING_KNIFE = st.number_input("琢玉刀数量", min_value=0, value=200, step=10)
-    CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=300, step=10)
+    CURRENT_CARVING_KNIFE = st.number_input("琢玉刀数量", min_value=0, value=0, step=1)
+    CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=0, step=1)
     
     st.subheader("兑换比例")
     POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.1, step=0.1, format="%.2f")
@@ -87,9 +87,9 @@ if version == "详细版 (分别设置上下)":
     with col1:
         st.markdown("**步兵神兵**")
         foot_weapon_up = st.selectbox("步兵上", options=weapon_level_options, 
-                                      index=weapon_level_options.index("绿色1级"), key="foot_weapon_up")
+                                      index=weapon_level_options.index("未拥有"), key="foot_weapon_up")
         foot_weapon_down = st.selectbox("步兵下", options=weapon_level_options, 
-                                        index=weapon_level_options.index("绿色1级"), key="foot_weapon_down")
+                                        index=weapon_level_options.index("未拥有"), key="foot_weapon_down")
         
         # 存储到WEAPONS字典
         WEAPONS["步兵上"] = {"current": foot_weapon_up, "type": "foot"}
@@ -169,7 +169,7 @@ else:
     with col1:
         st.subheader("步兵")
         foot_weapon = st.selectbox("神兵等级", options=weapon_level_options, 
-                                  index=weapon_level_options.index("绿色1级"), key="foot_weapon_simple")
+                                  index=weapon_level_options.index("未拥有"), key="foot_weapon_simple")
         foot_jade = st.selectbox("玉石等级", options=jade_level_options, index=0, 
                                 key="foot_jade_simple")
         
