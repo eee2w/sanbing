@@ -120,9 +120,9 @@ else:
     
     st.markdown("---")
     
-    # --- 简略版玉石等级选择 ---
+    # --- 简略版玉石等级选择（修改后）---
     st.header("💎 玉石升级目标 (批量设置)")
-    st.caption("每个兵种使用相同的一套玉石设置，系统会自动计算8个玉石的消耗")
+    st.caption("每个兵种只需设置一个玉石等级，该兵种上下共8个玉石都使用此等级")
     
     # 定义玉石等级选项 (0-25级)
     jade_level_options = list(range(0, 26))
@@ -136,45 +136,43 @@ else:
     for idx, jade_troop_name in enumerate(jade_troop_names):
         with jade_troop_cols[idx]:
             st.markdown(f"**{jade_troop_name}**")
-            st.caption("设置1-4号玉石等级")
+            st.caption("设置一个等级，8个玉石通用")
             
-            # 为每个兵种的4个玉石创建输入
-            jade_settings = {}
-            for i in range(1, 5):
-                default_current = 0
-                default_target = 0
-                
-                current = st.selectbox(f"玉石{i}当前", options=jade_level_options, index=default_current, key=f"jt_curr_{jade_troop_name}_{i}")
-                target = st.selectbox(f"玉石{i}目标", options=jade_level_options, index=default_target, key=f"jt_tar_{jade_troop_name}_{i}")
-                jade_settings[f"玉石{i}"] = {"current": current, "target": target}
+            # 每个兵种只需设置一个当前等级和一个目标等级
+            default_current = 0
+            default_target = 0
             
-            jade_troop_settings[jade_troop_name] = jade_settings
+            current = st.selectbox(f"当前等级", options=jade_level_options, index=default_current, key=f"jt_curr_{jade_troop_name}")
+            target = st.selectbox(f"目标等级", options=jade_level_options, index=default_target, key=f"jt_tar_{jade_troop_name}")
+            
+            jade_troop_settings[jade_troop_name] = {"current": current, "target": target}
     
-    # 根据兵种设置生成详细的JADES数据
-    # 步兵玉石：步兵上1-4，步兵下1-4
-    # 骑兵玉石：骑兵上1-4，骑兵下1-4
-    # 弓兵玉石：弓兵上1-4，弓兵下1-4
+    # 根据兵种设置生成详细的JADES数据（每个兵种8个玉石使用相同等级）
+    # 步兵玉石：步兵上1-4，步兵下1-4（共8个）
+    # 骑兵玉石：骑兵上1-4，骑兵下1-4（共8个）
+    # 弓兵玉石：弓兵上1-4，弓兵下1-4（共8个）
     
     troop_mapping = {
         "步兵玉石": "步兵",
-        "骑兵玉石": "骑兵",
+        "骑兵玉石": "骑兵", 
         "弓兵玉石": "弓兵"
     }
     
-    for jade_troop_name, jade_settings in jade_troop_settings.items():
+    for jade_troop_name, jade_setting in jade_troop_settings.items():
         troop_prefix = troop_mapping[jade_troop_name]
         
-        # 上位置玉石
+        # 生成该兵种8个玉石的设置（上下各4个，共8个）
+        # 上位置玉石 (1-4)
         for i in range(1, 5):
             jade_name = f"{troop_prefix}上{i}"
-            JADES[jade_name] = {"current": jade_settings[f"玉石{i}"]["current"], 
-                                "target": jade_settings[f"玉石{i}"]["target"]}
+            JADES[jade_name] = {"current": jade_setting["current"], 
+                                "target": jade_setting["target"]}
         
-        # 下位置玉石
+        # 下位置玉石 (1-4)
         for i in range(1, 5):
             jade_name = f"{troop_prefix}下{i}"
-            JADES[jade_name] = {"current": jade_settings[f"玉石{i}"]["current"], 
-                                "target": jade_settings[f"玉石{i}"]["target"]}
+            JADES[jade_name] = {"current": jade_setting["current"], 
+                                "target": jade_setting["target"]}
 
 st.markdown("---")
 
@@ -381,7 +379,7 @@ class UpgradeCalculator:
 st.header("📊 计算结果")
 
 # 显示当前版本信息
-st.info(f"当前使用: **{version}** - {'所有项目单独设置' if version == '详细版 (逐项设置)' else '按兵种批量设置 (消耗自动×2)'}")
+st.info(f"当前使用: **{version}** - {'所有项目单独设置' if version == '详细版 (逐项设置)' else '按兵种批量设置'}")
 
 if st.button("🚀 开始计算", type="primary", use_container_width=True):
     with st.spinner("正在计算升级需求..."):
@@ -485,7 +483,7 @@ if st.button("🚀 开始计算", type="primary", use_container_width=True):
             st.dataframe(pd.DataFrame(jade_data), use_container_width=True)
             # 简略版额外显示兵种汇总信息
             if version == "简略版 (兵种批量设置)":
-                st.info("💡 简略版说明: 每个兵种的8个玉石(上下各4个)设置相同，消耗已自动×8")
+                st.info("💡 简略版说明: 每个兵种只需设置一个玉石等级，该兵种上下共8个玉石都使用此等级，消耗已自动×8")
         else:
             st.info("所有玉石均无需升级")
 
