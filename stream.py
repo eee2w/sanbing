@@ -377,7 +377,7 @@ class UpgradeCalculator:
         }
 
 # --- 4. 计算并展示结果 ---
-st.header("📊 计算结果")
+st.header("📊 计算结果（注意兑换1次得到的材料数量不一定是1个）")
 
 # 显示当前版本信息
 st.info(f"当前使用: **{version}** - {'所有项目单独设置' if version == '详细版 (逐项设置)' else '按兵种批量设置'}")
