@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # ============= Streamlit 网页应用 =============
+#材料自动兑换计算-Material Exchange Auto-Recommendation
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
 st.title("⚔️💎 神兵玉石自动升级计算器")
 st.caption("📝 提示：点击左上角双箭头图标填写积分和材料数量")
@@ -61,7 +62,7 @@ with col2:
         "玉石等级差", 
         min_value=0, 
         max_value=10, 
-        value=3, 
+        value=2, 
         step=1,
         help="步兵玉石比弓兵玉石高的级数"
     )
