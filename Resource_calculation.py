@@ -14,21 +14,27 @@ st.markdown("---")
 # 已有资源部分
 st.subheader("📦 已有资源")
 
-# 创建每行资源的布局函数 - 修改为水平排列
+# 创建每行资源的布局函数 - 使用更紧凑的布局
 def create_resource_input(label):
-    col_num, col_unit = st.columns([1, 1])
+    # 创建更紧凑的列布局
+    col_label, col_num, col_unit = st.columns([2, 3, 1])
+    
+    with col_label:
+        st.markdown(f"**{label}**")
+    
     with col_num:
-        # 使用text_input而不是number_input，允许空值
+        # 使用text_input，允许空值
         num_str = st.text_input(
-            f"{label}数量",
+            "",
             value="",  # 空值
-            placeholder="请输入",
-            key=f"{label}_num"
+            placeholder="数量",
+            key=f"{label}_num",
+            label_visibility="collapsed"
         )
+    
     with col_unit:
-        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)  # 垂直对齐
         unit = st.selectbox(
-            "单位",
+            "",
             ["万", "亿"],
             key=f"{label}_unit",
             label_visibility="collapsed"
@@ -53,8 +59,9 @@ st.markdown("---")
 # 资源包数量部分
 st.subheader("🎁 资源包数量")
 
-# 创建资源包数量输入函数 - 也设为空值
+# 创建资源包数量输入函数
 def create_pack_input(label, description):
+    # 使用更紧凑的布局
     col_label, col_input = st.columns([3, 1])
     with col_label:
         st.markdown(f"**{label}**")
@@ -62,7 +69,7 @@ def create_pack_input(label, description):
     with col_input:
         # 使用text_input，允许空值
         pack_str = st.text_input(
-            label,
+            "",
             value="",
             placeholder="0",
             key=f"{label}_input",
@@ -78,9 +85,9 @@ def create_pack_input(label, description):
     return pack_value
 
 # 输入资源包数量
-pack_1w = create_pack_input("1w资源包数量", "每个1万资源")
-pack_10w = create_pack_input("10w资源包数量", "每个10万资源")
-pack_100w = create_pack_input("100w资源包数量", "每个100万资源")
+pack_1w = create_pack_input("1w资源包", "每个1万资源")
+pack_10w = create_pack_input("10w资源包", "每个10万资源")
+pack_100w = create_pack_input("100w资源包", "每个100万资源")
 
 st.markdown("---")
 
@@ -89,7 +96,7 @@ st.subheader("⚙️ 补充策略选择")
 strategy = st.radio(
     "请选择资源包使用策略：",
     ["按比例补充（尽量满足4:4:2:1的比例）", "按顺序补充（严格按照肉→木→煤→铁的顺序，补充到与最多资源的比例相同）"],
-    horizontal=True
+    horizontal=False  # 改为垂直布局，在手机上更友好
 )
 
 # 计算按钮
@@ -332,14 +339,16 @@ if calculate_button:
         
         # 1. 最终资源总量
         st.markdown("### 1. 最终资源总量（使用所有资源包后）")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
+        
+        # 使用网格布局，确保在手机上也能正确显示
+        cols = st.columns(2)  # 在手机上显示2列，在桌面上会自动调整
+        
+        with cols[0]:
             st.metric("肉", f"{result['final']['meat']:.2f}万", f"+{result['added']['meat']:.2f}万")
-        with col2:
-            st.metric("木", f"{result['final']['wood']:.2f}万", f"+{result['added']['wood']:.2f}万")
-        with col3:
             st.metric("煤", f"{result['final']['coal']:.2f}万", f"+{result['added']['coal']:.2f}万")
-        with col4:
+        
+        with cols[1]:
+            st.metric("木", f"{result['final']['wood']:.2f}万", f"+{result['added']['wood']:.2f}万")
             st.metric("铁", f"{result['final']['iron']:.2f}万", f"+{result['added']['iron']:.2f}万")
         
         # 2. 资源过剩情况
@@ -369,7 +378,9 @@ if calculate_button:
                       result['added']['coal'] + result['added']['iron'])
         
         if total_added > 0:
-            cols = st.columns(4)
+            # 在手机上使用2列布局
+            mobile_cols = st.columns(2)
+            
             resources = [
                 ("🥩 肉", result['added']['meat'], "#FF6B6B"),
                 ("🪵 木", result['added']['wood'], "#4ECDC4"),
@@ -378,7 +389,10 @@ if calculate_button:
             ]
             
             for i, (name, value, color) in enumerate(resources):
-                with cols[i]:
+                col_idx = i % 2  # 0或1
+                row_idx = i // 2  # 0或1
+                
+                with mobile_cols[col_idx]:
                     if total_added > 0:
                         percentage = (value / total_added) * 100
                         st.markdown(f"**{name}**")
