@@ -14,78 +14,73 @@ st.markdown("---")
 # 已有资源部分
 st.subheader("📦 已有资源")
 
+# 创建每行资源的布局函数 - 修改为水平排列
+def create_resource_input(label):
+    col_num, col_unit = st.columns([4, 1])
+    with col_num:
+        # 使用text_input而不是number_input，允许空值
+        num_str = st.text_input(
+            f"{label}数量",
+            value="",  # 空值
+            placeholder="请输入",
+            key=f"{label}_num"
+        )
+    with col_unit:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)  # 垂直对齐
+        unit = st.selectbox(
+            "单位",
+            ["万", "亿"],
+            key=f"{label}_unit",
+            label_visibility="collapsed"
+        )
+    
+    # 将输入转换为浮点数，如果为空则返回0
+    try:
+        num = float(num_str) if num_str else 0.0
+    except ValueError:
+        num = 0.0
+    
+    return num, unit
+
 # 输入每种资源
-col_meat_num, col_meat_unit = st.columns([3, 1])
-with col_meat_num:
-    meat_num_str = st.text_input(
-        "肉的数量",
-        value="",
-        placeholder="请输入数量",
-        key="meat_num"
-    )
-with col_meat_unit:
-    meat_unit = st.selectbox(
-        "单位",
-        ["万", "亿"],
-        key="meat_unit",
-        label_visibility="collapsed"
-    )
-
-col_wood_num, col_wood_unit = st.columns([3, 1])
-with col_wood_num:
-    wood_num_str = st.text_input(
-        "木头数量",
-        value="",
-        placeholder="请输入数量",
-        key="wood_num"
-    )
-with col_wood_unit:
-    wood_unit = st.selectbox(
-        "单位",
-        ["万", "亿"],
-        key="wood_unit",
-        label_visibility="collapsed"
-    )
-
-col_coal_num, col_coal_unit = st.columns([3, 1])
-with col_coal_num:
-    coal_num_str = st.text_input(
-        "煤的数量",
-        value="",
-        placeholder="请输入数量",
-        key="coal_num"
-    )
-with col_coal_unit:
-    coal_unit = st.selectbox(
-        "单位",
-        ["万", "亿"],
-        key="coal_unit",
-        label_visibility="collapsed"
-    )
-
-col_iron_num, col_iron_unit = st.columns([3, 1])
-with col_iron_num:
-    iron_num_str = st.text_input(
-        "铁的数量",
-        value="",
-        placeholder="请输入数量",
-        key="iron_num"
-    )
-with col_iron_unit:
-    iron_unit = st.selectbox(
-        "单位",
-        ["万", "亿"],
-        key="iron_unit",
-        label_visibility="collapsed"
-    )
+meat_num, meat_unit = create_resource_input("肉")
+wood_num, wood_unit = create_resource_input("木")
+coal_num, coal_unit = create_resource_input("煤")
+iron_num, iron_unit = create_resource_input("铁")
 
 st.markdown("---")
 
 # 资源包数量部分
 st.subheader("🎁 资源包数量")
-pack_1w_str = st.text_input("1w资源包数量", value="", placeholder="请输入数量")
-pack_10w_str = st.text_input("10w资源包数量", value="", placeholder="请输入数量")
-pack_100w_str = st.text_input("100w资源包数量", value="", placeholder="请输入数量")
+
+# 创建资源包数量输入函数 - 也设为空值
+def create_pack_input(label, description):
+    col_label, col_input = st.columns([3, 1])
+    with col_label:
+        st.markdown(f"**{label}**")
+        st.caption(description)
+    with col_input:
+        # 使用text_input，允许空值
+        pack_str = st.text_input(
+            label,
+            value="",
+            placeholder="0",
+            key=f"{label}_input",
+            label_visibility="collapsed"
+        )
+    
+    # 将输入转换为整数，如果为空则返回0
+    try:
+        pack_value = int(pack_str) if pack_str else 0
+    except ValueError:
+        pack_value = 0
+    
+    return pack_value
+
+# 输入资源包数量
+pack_1w = create_pack_input("1w资源包数量", "每个1万资源")
+pack_10w = create_pack_input("10w资源包数量", "每个10万资源")
+pack_100w = create_pack_input("100w资源包数量", "每个100万资源")
 
 st.markdown("---")
 
@@ -319,42 +314,6 @@ def calculate_resources(meat, wood, coal, iron, pack_1w, pack_10w, pack_100w, st
 
 # 点击按钮时进行计算
 if calculate_button:
-    # 将输入的字符串转换为数字
-    try:
-        meat_num = float(meat_num_str) if meat_num_str else 0.0
-    except ValueError:
-        meat_num = 0.0
-    
-    try:
-        wood_num = float(wood_num_str) if wood_num_str else 0.0
-    except ValueError:
-        wood_num = 0.0
-        
-    try:
-        coal_num = float(coal_num_str) if coal_num_str else 0.0
-    except ValueError:
-        coal_num = 0.0
-        
-    try:
-        iron_num = float(iron_num_str) if iron_num_str else 0.0
-    except ValueError:
-        iron_num = 0.0
-    
-    try:
-        pack_1w = int(pack_1w_str) if pack_1w_str else 0
-    except ValueError:
-        pack_1w = 0
-    
-    try:
-        pack_10w = int(pack_10w_str) if pack_10w_str else 0
-    except ValueError:
-        pack_10w = 0
-        
-    try:
-        pack_100w = int(pack_100w_str) if pack_100w_str else 0
-    except ValueError:
-        pack_100w = 0
-    
     # 转换单位为万
     meat = convert_to_wan(meat_num, meat_unit)
     wood = convert_to_wan(wood_num, wood_unit)
