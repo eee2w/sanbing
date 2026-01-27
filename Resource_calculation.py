@@ -16,7 +16,7 @@ st.subheader("📦 已有资源")
 
 # 创建每行资源的布局函数 - 修改为水平排列
 def create_resource_input(label):
-    col_num, col_unit = st.columns([2, 1])
+    col_num, col_unit = st.columns([5, 1])
     with col_num:
         # 使用text_input而不是number_input，允许空值
         num_str = st.text_input(
