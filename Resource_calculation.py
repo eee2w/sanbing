@@ -55,7 +55,7 @@ st.subheader("🎁 资源包数量")
 
 # 创建资源包数量输入函数
 def create_pack_input(label, description):
-    col_label, col_input = st.columns([3, 1])
+    col_label, col_input = st.columns([5, 1])
     with col_label:
         st.markdown(f"**{label}**")
         st.caption(description)
