@@ -42,15 +42,29 @@ with st.sidebar:
 
 st.markdown("---")
 
-# --- 等级差设置（从侧边栏移到这里）---
+# --- 等级差设置（从侧边栏移到这里，改为加减号调整）---
 st.subheader("等级差设置")
 st.caption("步兵等级比弓兵高多少级？")
 
 col1, col2 = st.columns(2)
 with col1:
-    WEAPON_LEVEL_DIFF = st.slider("神兵等级差", min_value=0, max_value=10, value=5, step=1)
+    WEAPON_LEVEL_DIFF = st.number_input(
+        "神兵等级差", 
+        min_value=0, 
+        max_value=10, 
+        value=5, 
+        step=1,
+        help="步兵神兵比弓兵神兵高的级数"
+    )
 with col2:
-    JADE_LEVEL_DIFF = st.slider("玉石等级差", min_value=0, max_value=10, value=3, step=1)
+    JADE_LEVEL_DIFF = st.number_input(
+        "玉石等级差", 
+        min_value=0, 
+        max_value=10, 
+        value=3, 
+        step=1,
+        help="步兵玉石比弓兵玉石高的级数"
+    )
 
 st.markdown("---")
 
