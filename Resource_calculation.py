@@ -1,5 +1,4 @@
 import streamlit as st
-import numpy as np
 
 # 设置页面标题和布局
 st.set_page_config(
@@ -12,93 +11,42 @@ st.set_page_config(
 st.title("🎮 游戏资源计算器")
 st.markdown("---")
 
-# 创建两列布局
-col1, col2 = st.columns(2)
+# 已有资源部分
+st.subheader("📦 已有资源")
 
-with col1:
-    st.subheader("📦 已有资源")
-    
-    # 肉
-    col_meat_num, col_meat_unit = st.columns([3, 1])
-    with col_meat_num:
-        meat_num = st.number_input(
-            "肉的数量",
+# 创建每行资源的布局函数
+def create_resource_input(label):
+    col_num, col_unit = st.columns([3, 1])
+    with col_num:
+        num = st.number_input(
+            f"{label}数量",
             min_value=0.0,
             value=0.0,
             step=1.0,
             format="%.1f",
-            label_visibility="collapsed"
+            key=f"{label}_num"
         )
-    with col_meat_unit:
-        meat_unit = st.selectbox(
+    with col_unit:
+        unit = st.selectbox(
             "单位",
             ["万", "亿"],
-            key="meat_unit",
-            label_visibility="collapsed"
+            key=f"{label}_unit"
         )
-    
-    # 木头
-    col_wood_num, col_wood_unit = st.columns([3, 1])
-    with col_wood_num:
-        wood_num = st.number_input(
-            "木头数量",
-            min_value=0.0,
-            value=0.0,
-            step=1.0,
-            format="%.1f",
-            label_visibility="collapsed"
-        )
-    with col_wood_unit:
-        wood_unit = st.selectbox(
-            "单位",
-            ["万", "亿"],
-            key="wood_unit",
-            label_visibility="collapsed"
-        )
-    
-    # 煤
-    col_coal_num, col_coal_unit = st.columns([3, 1])
-    with col_coal_num:
-        coal_num = st.number_input(
-            "煤的数量",
-            min_value=0.0,
-            value=0.0,
-            step=1.0,
-            format="%.1f",
-            label_visibility="collapsed"
-        )
-    with col_coal_unit:
-        coal_unit = st.selectbox(
-            "单位",
-            ["万", "亿"],
-            key="coal_unit",
-            label_visibility="collapsed"
-        )
-    
-    # 铁
-    col_iron_num, col_iron_unit = st.columns([3, 1])
-    with col_iron_num:
-        iron_num = st.number_input(
-            "铁的数量",
-            min_value=0.0,
-            value=0.0,
-            step=1.0,
-            format="%.1f",
-            label_visibility="collapsed"
-        )
-    with col_iron_unit:
-        iron_unit = st.selectbox(
-            "单位",
-            ["万", "亿"],
-            key="iron_unit",
-            label_visibility="collapsed"
-        )
+    return num, unit
 
-with col2:
-    st.subheader("🎁 资源包数量")
-    pack_1w = st.number_input("1w资源包数量", min_value=0, value=0, step=1)
-    pack_10w = st.number_input("10w资源包数量", min_value=0, value=0, step=1)
-    pack_100w = st.number_input("100w资源包数量", min_value=0, value=0, step=1)
+# 输入每种资源
+meat_num, meat_unit = create_resource_input("肉")
+wood_num, wood_unit = create_resource_input("木")
+coal_num, coal_unit = create_resource_input("煤")
+iron_num, iron_unit = create_resource_input("铁")
+
+st.markdown("---")
+
+# 资源包数量部分
+st.subheader("🎁 资源包数量")
+pack_1w = st.number_input("1w资源包数量", min_value=0, value=0, step=1)
+pack_10w = st.number_input("10w资源包数量", min_value=0, value=0, step=1)
+pack_100w = st.number_input("100w资源包数量", min_value=0, value=0, step=1)
 
 st.markdown("---")
 
@@ -412,24 +360,6 @@ if calculate_button:
                         st.markdown(f"**{name}**")
                         st.progress(min(100, percentage/100))
                         st.markdown(f"{value:.2f}万 ({percentage:.1f}%)")
-        
-        # 显示比例信息
-        st.markdown("---")
-        st.markdown("#### 📈 比例信息")
-        st.info(f"当前资源可支持 **{result['ratio_multiple']:.2f}倍** 的4:4:2:1比例")
-        
-        # 显示理想分配量
-        with st.expander("查看理想分配详情"):
-            st.markdown("**按4:4:2:1比例分配的理想资源量：**")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("肉", f"{result['ideal']['meat']:.2f}万")
-            with col2:
-                st.metric("木", f"{result['ideal']['wood']:.2f}万")
-            with col3:
-                st.metric("煤", f"{result['ideal']['coal']:.2f}万")
-            with col4:
-                st.metric("铁", f"{result['ideal']['iron']:.2f}万")
         
     except Exception as e:
         st.error(f"计算过程中出现错误: {e}")
