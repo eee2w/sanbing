@@ -39,12 +39,17 @@ with st.sidebar:
     POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=6.0, step=0.1, format="%.2f")
     POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=30.0, step=1.0, format="%.2f")
     POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=6.0, step=0.1, format="%.2f")
-    
-    st.markdown("---")
-    
-    st.subheader("等级差设置")
-    st.caption("步兵等级比弓兵高多少级？")
+
+st.markdown("---")
+
+# --- 等级差设置（从侧边栏移到这里）---
+st.subheader("等级差设置")
+st.caption("步兵等级比弓兵高多少级？")
+
+col1, col2 = st.columns(2)
+with col1:
     WEAPON_LEVEL_DIFF = st.slider("神兵等级差", min_value=0, max_value=10, value=5, step=1)
+with col2:
     JADE_LEVEL_DIFF = st.slider("玉石等级差", min_value=0, max_value=10, value=3, step=1)
 
 st.markdown("---")
@@ -724,15 +729,6 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
                         "升级级数": upgrade_levels
                     })
             st.dataframe(pd.DataFrame(jade_data), use_container_width=True)
-
-st.markdown("---")
-st.info(f"""
-**计算说明**:
-1. 保持步兵比弓兵高 **{WEAPON_LEVEL_DIFF}** 级（神兵），**{JADE_LEVEL_DIFF}** 级（玉石）
-2. 系统在满足等级差的前提下，最大化利用当前资源
-3. 忽略骑兵的神兵和玉石
-4. **{version}**：{'可分别设置每个神兵和玉石' if version == '详细版 (分别设置上下)' else '每个兵种的神兵上下相同，玉石8个相同'}
-""")
 
 st.markdown("---")
 st.caption("提示：修改侧边栏的设置后，点击上方按钮重新计算。切换版本后，当前设置会被重置。")
