@@ -157,6 +157,6 @@ for i, app in enumerate(apps):
 # 添加管理员反馈提示
 st.markdown("""
 <div class="feedback-note">
-    <strong>💡 提示：</strong> 遇到问题或需要功能改进，请找管理员反馈
+    <strong>💡 提示：</strong> 遇到问题或需要功能改进，请找玩大蛋反馈
 </div>
 """, unsafe_allow_html=True)
