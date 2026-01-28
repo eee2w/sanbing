@@ -21,17 +21,17 @@ st.markdown("---")
 with st.sidebar:
     st.header("📝 请输入你的数据")
     
-    # 全局积分
-    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=0, step=1)
+    # 全局积分 - 改为空值
+    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=None, step=1, placeholder="请输入积分")
     
     st.subheader("神兵材料库存")
-    CURRENT_WOOD = st.number_input("木头数量", min_value=0, value=0, step=1)
-    CURRENT_MITHRIL = st.number_input("精金数量", min_value=0, value=0, step=1)
-    CURRENT_LAPIS = st.number_input("青金石数量", min_value=0, value=0, step=1)
+    CURRENT_WOOD = st.number_input("木头数量", min_value=0, value=None, step=1, placeholder="请输入数量")
+    CURRENT_MITHRIL = st.number_input("精金数量", min_value=0, value=None, step=1, placeholder="请输入数量")
+    CURRENT_LAPIS = st.number_input("青金石数量", min_value=0, value=None, step=1, placeholder="请输入数量")
     
     st.subheader("玉石材料库存")
-    CURRENT_CARVING_KNIFE = st.number_input("琢玉刀数量", min_value=0, value=0, step=1)
-    CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=0, step=1)
+    CURRENT_CARVING_KNIFE = st.number_input("琢玉刀数量", min_value=0, value=None, step=1, placeholder="请输入数量")
+    CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=None, step=1, placeholder="请输入数量")
     
     st.subheader("兑换比例（如无特殊需求请勿修改）")
     # 将所有兑换比例改为浮点数
@@ -206,22 +206,22 @@ JADE_UPGRADE_COSTS = [
 
 class UpgradeCalculator:
     def __init__(self):
-        # 神兵相关
-        self.current_points = CURRENT_POINTS
+        # 神兵相关 - 处理None值
+        self.current_points = CURRENT_POINTS if CURRENT_POINTS is not None else 0
         self.points_per_wood = POINTS_PER_WOOD
         self.points_per_mithril = POINTS_PER_MITHRIL
         self.points_per_lapis = POINTS_PER_LAPIS
-        self.current_wood = CURRENT_WOOD
-        self.current_mithril = CURRENT_MITHRIL
-        self.current_lapis = CURRENT_LAPIS
+        self.current_wood = CURRENT_WOOD if CURRENT_WOOD is not None else 0
+        self.current_mithril = CURRENT_MITHRIL if CURRENT_MITHRIL is not None else 0
+        self.current_lapis = CURRENT_LAPIS if CURRENT_LAPIS is not None else 0
         self.weapons = WEAPONS
         self.weapon_upgrade_costs = WEAPON_UPGRADE_COSTS
         
-        # 玉石相关
+        # 玉石相关 - 处理None值
         self.points_per_carving_knife = POINTS_PER_CARVING_KNIFE
         self.points_per_unpolished_jade = POINTS_PER_UNPOLISHED_JADE
-        self.current_carving_knife = CURRENT_CARVING_KNIFE
-        self.current_unpolished_jade = CURRENT_UNPOLISHED_JADE
+        self.current_carving_knife = CURRENT_CARVING_KNIFE if CURRENT_CARVING_KNIFE is not None else 0
+        self.current_unpolished_jade = CURRENT_UNPOLISHED_JADE if CURRENT_UNPOLISHED_JADE is not None else 0
         self.jades = JADES
         self.jade_upgrade_costs = JADE_UPGRADE_COSTS
     
@@ -391,12 +391,13 @@ if st.button("🚀 开始计算", type="primary", use_container_width=True):
     with st.spinner("正在计算升级需求..."):
         # 初始化计算器，传入用户输入的动态值
         calculator = UpgradeCalculator()
-        calculator.current_points = CURRENT_POINTS
-        calculator.current_wood = CURRENT_WOOD
-        calculator.current_mithril = CURRENT_MITHRIL
-        calculator.current_lapis = CURRENT_LAPIS
-        calculator.current_carving_knife = CURRENT_CARVING_KNIFE
-        calculator.current_unpolished_jade = CURRENT_UNPOLISHED_JADE
+        # 处理None值，确保计算正确
+        calculator.current_points = CURRENT_POINTS if CURRENT_POINTS is not None else 0
+        calculator.current_wood = CURRENT_WOOD if CURRENT_WOOD is not None else 0
+        calculator.current_mithril = CURRENT_MITHRIL if CURRENT_MITHRIL is not None else 0
+        calculator.current_lapis = CURRENT_LAPIS if CURRENT_LAPIS is not None else 0
+        calculator.current_carving_knife = CURRENT_CARVING_KNIFE if CURRENT_CARVING_KNIFE is not None else 0
+        calculator.current_unpolished_jade = CURRENT_UNPOLISHED_JADE if CURRENT_UNPOLISHED_JADE is not None else 0
         calculator.points_per_wood = POINTS_PER_WOOD
         calculator.points_per_mithril = POINTS_PER_MITHRIL
         calculator.points_per_lapis = POINTS_PER_LAPIS
@@ -467,7 +468,7 @@ if st.button("🚀 开始计算", type="primary", use_container_width=True):
         if weapon_data:
             st.dataframe(pd.DataFrame(weapon_data), use_container_width=True)
             # 简略版额外显示兵种汇总信息
-            if version == "简略版 (兵种批量设置)":
+            if version == "简略版 (批量设置)":
                 st.info("💡 简略版说明: 每个兵种的上下两件神兵设置相同，消耗已自动×2")
         else:
             st.info("所有神兵均无需升级")
@@ -488,7 +489,7 @@ if st.button("🚀 开始计算", type="primary", use_container_width=True):
         if jade_data:
             st.dataframe(pd.DataFrame(jade_data), use_container_width=True)
             # 简略版额外显示兵种汇总信息
-            if version == "简略版 (兵种批量设置)":
+            if version == "简略版 (批量设置)":
                 st.info("💡 简略版说明: 每个兵种只需设置一个玉石等级，该兵种上下共8个玉石都使用此等级，消耗已自动×8")
         else:
             st.info("所有玉石均无需升级")
