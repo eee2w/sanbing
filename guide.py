@@ -65,34 +65,19 @@ st.markdown("""
     
     .status-badge {
         display: inline-block;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         font-weight: 500;
         margin-left: 8px;
+        color: #666;
         vertical-align: middle;
     }
     
     .status-online {
-        background: #10B981;
-        color: white;
-    }
-    
-    .status-online::before {
-        content: "🟢";
-        margin-right: 4px;
-        font-size: 0.6rem;
+        color: #10B981;
     }
     
     .status-dev {
-        background: #F59E0B;
-        color: white;
-    }
-    
-    .status-dev::before {
-        content: "🟡";
-        margin-right: 4px;
-        font-size: 0.6rem;
+        color: #F59E0B;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -133,10 +118,10 @@ apps = [
 for i, app in enumerate(apps):
     # 状态标签
     if app["status"] == "online":
-        status_text = "在线"
+        status_text = "（可使用）"
         status_class = "status-online"
     else:
-        status_text = "开发中"
+        status_text = "（开发中）"
         status_class = "status-dev"
     
     # 创建卡片HTML
