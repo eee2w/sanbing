@@ -46,77 +46,51 @@ st.markdown("""
         line-height: 1.5;
     }
     
-    /* 链接显示区域样式 */
-    .link-display {
-        background-color: #f8f9fa;
+    /* 完整链接显示样式 */
+    .full-url {
+        background-color: #f5f5f5;
         border-radius: 6px;
         padding: 10px 12px;
-        margin: 12px 0;
+        margin: 15px 0;
         border: 1px solid #e0e0e0;
         word-break: break-all;
         font-size: 0.85rem;
-        font-family: 'Courier New', monospace;
-        color: #2c3e50;
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        color: #333;
         user-select: text;
         -webkit-user-select: text;
         line-height: 1.4;
     }
     
-    .copy-hint {
+    .url-hint {
         font-size: 0.8rem;
-        color: #666;
+        color: #888;
         text-align: center;
-        margin: 5px 0 15px 0;
-        font-style: italic;
-    }
-    
-    .button-container {
-        display: flex;
-        gap: 12px;
-        margin-top: 10px;
+        margin: 5px 0 10px 0;
+        font-style: normal;
     }
     
     .app-link {
         display: inline-block;
         background: #667eea;
         color: white;
-        padding: 8px 16px;
+        padding: 10px 20px;
         border-radius: 5px;
         text-decoration: none;
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         transition: all 0.3s ease;
         text-align: center;
-        flex: 1;
+        width: 100%;
         border: none;
         cursor: pointer;
+        margin-top: 5px;
     }
     
     .app-link:hover {
         background: #764ba2;
         color: white;
         text-decoration: none;
-        transform: translateY(-1px);
-    }
-    
-    .copy-btn {
-        display: inline-block;
-        background: #10B981;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        text-align: center;
-        flex: 1;
-        border: none;
-        cursor: pointer;
-    }
-    
-    .copy-btn:hover {
-        background: #0da271;
         transform: translateY(-1px);
     }
     
@@ -148,6 +122,15 @@ st.markdown("""
         border-left: 4px solid #ffc107;
         line-height: 1.6;
     }
+    
+    .footer-tip {
+        text-align: center;
+        margin-top: 30px;
+        padding: 10px;
+        font-size: 0.85rem;
+        color: #666;
+        line-height: 1.5;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -162,9 +145,9 @@ st.markdown("""
 st.markdown("""
 <div class="wechat-tip">
     <strong>📱 微信内访问指引：</strong><br>
-    1. 点击下方"打开应用"尝试直接跳转<br>
-    2. 如果无法跳转，<strong>长按下方链接</strong>，选择"复制"<br>
-    3. 在手机浏览器中粘贴访问
+    1. 尝试点击下方"打开应用"按钮直接跳转<br>
+    2. 如果无法跳转，<strong>长按下方链接</strong>选择"复制"<br>
+    3. 粘贴到手机浏览器中打开
 </div>
 """, unsafe_allow_html=True)
 
@@ -208,35 +191,27 @@ for app in apps:
             {app["description"]}
         </div>
         
-        <!-- 新增：链接显示区域（可长按复制） -->
-        <div class="link-display">
+        <!-- 完整链接显示区域 -->
+        <div class="full-url">
             {app["url"]}
         </div>
-        <div class="copy-hint">
-            ↑ 长按上方链接选择"复制" ↑
+        <div class="url-hint">
+            长按上方链接可复制
         </div>
         
-        <div class="button-container">
-            <!-- 原有的打开应用按钮 -->
-            <a href="{app["url"]}" target="_blank" class="app-link">
-                打开应用 →
-            </a>
-            
-            <!-- 保留的复制按钮（可能在某些浏览器中有效） -->
-            <button class="copy-btn" onclick="navigator.clipboard.writeText('{app["url"]}').then(() => alert('已复制链接')).catch(() => alert('请长按上方链接手动复制'))">
-                复制链接
-            </button>
-        </div>
+        <!-- 打开应用按钮 -->
+        <a href="{app["url"]}" target="_blank" class="app-link">
+            打开应用 →
+        </a>
     </div>
     """
     
     html(card_html)
 
-# 添加页脚提示
-st.markdown("---")
-st.markdown(
-    "<div style='text-align: center; color: #888; font-size: 0.85rem;'>"
-    "💡 提示：微信内访问时，长按链接复制到浏览器中打开最可靠"
-    "</div>",
-    unsafe_allow_html=True
-)
+# 页脚说明
+st.markdown("""
+<div class="footer-tip">
+    <strong>使用提示：</strong>电脑浏览器可直接点击"打开应用"按钮<br>
+    手机微信内建议使用"长按链接复制 → 浏览器粘贴访问"的方式
+</div>
+""", unsafe_allow_html=True)
