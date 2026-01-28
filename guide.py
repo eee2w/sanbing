@@ -65,11 +65,12 @@ st.markdown("""
     
     .status-badge {
         display: inline-block;
-        padding: 3px 10px;
-        border-radius: 12px;
-        font-size: 0.8rem;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
         font-weight: 500;
-        margin-left: 10px;
+        margin-left: 8px;
+        vertical-align: middle;
     }
     
     .status-online {
@@ -77,9 +78,21 @@ st.markdown("""
         color: white;
     }
     
+    .status-online::before {
+        content: "🟢";
+        margin-right: 4px;
+        font-size: 0.6rem;
+    }
+    
     .status-dev {
         background: #F59E0B;
         color: white;
+    }
+    
+    .status-dev::before {
+        content: "🟡";
+        margin-right: 4px;
+        font-size: 0.6rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -120,16 +133,18 @@ apps = [
 for i, app in enumerate(apps):
     # 状态标签
     if app["status"] == "online":
-        status_badge = '<span class="status-badge status-online">在线</span>'
+        status_text = "在线"
+        status_class = "status-online"
     else:
-        status_badge = '<span class="status-badge status-dev">开发中</span>'
+        status_text = "开发中"
+        status_class = "status-dev"
     
     # 创建卡片HTML
     card_html = f"""
     <div class="app-card">
         <div class="app-title">
             {app["icon"]} {app["name"]}
-            {status_badge}
+            <span class="status-badge {status_class}">{status_text}</span>
         </div>
         <div class="app-description">
             {app["description"]}
