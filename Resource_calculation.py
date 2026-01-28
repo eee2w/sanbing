@@ -102,11 +102,40 @@ def convert_to_wan(value, unit):
         return value * 10000
     return value
 
-def format_value_with_billion(value):
-    """格式化数值，如果过亿则添加亿单位显示"""
-    if value >= 10000:
-        return f"{value:.2f}万 ({value/10000:.2f}亿)"
-    return f"{value:.2f}万"
+def format_large_value(value, show_original_unit=False):
+    """
+    格式化大数值，使其更易读
+    
+    参数:
+    value: 以万为单位的数值
+    show_original_unit: 是否显示原始单位(万)
+    
+    返回:
+    格式化后的字符串
+    """
+    # 1万亿及以上
+    if value >= 100000000:  # 1万亿 = 100000000万
+        billion_value = value / 10000
+        if show_original_unit:
+            return f"{billion_value:,.2f}亿 (万亿级别)"
+        else:
+            return f"{billion_value:,.2f}亿"
+    # 10亿及以上
+    elif value >= 10000:  # 1亿 = 10000万
+        billion_value = value / 10000
+        if show_original_unit:
+            return f"{billion_value:,.2f}亿 ({value:,.0f}万)"
+        else:
+            return f"{billion_value:,.2f}亿"
+    # 100万及以上
+    elif value >= 100:  # 100万 = 100万
+        if show_original_unit:
+            return f"{value:,.0f}万"
+        else:
+            return f"{value:,.0f}万"
+    # 小于100万
+    else:
+        return f"{value:,.2f}万"
 
 def calculate_resources(meat, wood, coal, iron, pack_1w, pack_10w, pack_100w, strategy_type):
     """
@@ -340,39 +369,41 @@ if calculate_button:
         st.markdown("### 1. 最终资源总量（使用所有资源包后）")
         col1, col2, col3, col4 = st.columns(4)
         
-        # 格式化显示函数
-        def format_final_value(value):
-            if value >= 10000:
-                return f"{value:.2f}万 ({value/10000:.2f}亿)"
-            return f"{value:.2f}万"
-        
         with col1:
-            st.metric("肉", format_final_value(result['final']['meat']), f"+{result['added']['meat']:.2f}万")
+            # 格式化最终资源量
+            final_meat_display = format_large_value(result['final']['meat'])
+            # 格式化补充量
+            added_meat_display = format_large_value(result['added']['meat'])
+            st.metric("肉", final_meat_display, f"+{added_meat_display}")
         with col2:
-            st.metric("木", format_final_value(result['final']['wood']), f"+{result['added']['wood']:.2f}万")
+            final_wood_display = format_large_value(result['final']['wood'])
+            added_wood_display = format_large_value(result['added']['wood'])
+            st.metric("木", final_wood_display, f"+{added_wood_display}")
         with col3:
-            st.metric("煤", format_final_value(result['final']['coal']), f"+{result['added']['coal']:.2f}万")
+            final_coal_display = format_large_value(result['final']['coal'])
+            added_coal_display = format_large_value(result['added']['coal'])
+            st.metric("煤", final_coal_display, f"+{added_coal_display}")
         with col4:
-            st.metric("铁", format_final_value(result['final']['iron']), f"+{result['added']['iron']:.2f}万")
+            final_iron_display = format_large_value(result['final']['iron'])
+            added_iron_display = format_large_value(result['added']['iron'])
+            st.metric("铁", final_iron_display, f"+{added_iron_display}")
         
         # 2. 资源过剩情况
         st.markdown("### 2. 资源过剩情况（超过4:4:2:1比例的部分）")
         
-        # 格式化过剩值的显示
-        def format_excess_value(value):
-            if value >= 10000:
-                return f"{value:.2f}万 ({value/10000:.2f}亿)"
-            return f"{value:.2f}万"
-        
         excess_resources = []
         if result['excess']['meat'] > 0:
-            excess_resources.append(f"🥩 肉过剩: {format_excess_value(result['excess']['meat'])}")
+            excess_display = format_large_value(result['excess']['meat'], show_original_unit=True)
+            excess_resources.append(f"🥩 肉过剩: {excess_display}")
         if result['excess']['wood'] > 0:
-            excess_resources.append(f"🪵 木过剩: {format_excess_value(result['excess']['wood'])}")
+            excess_display = format_large_value(result['excess']['wood'], show_original_unit=True)
+            excess_resources.append(f"🪵 木过剩: {excess_display}")
         if result['excess']['coal'] > 0:
-            excess_resources.append(f"⛏️ 煤过剩: {format_excess_value(result['excess']['coal'])}")
+            excess_display = format_large_value(result['excess']['coal'], show_original_unit=True)
+            excess_resources.append(f"⛏️ 煤过剩: {excess_display}")
         if result['excess']['iron'] > 0:
-            excess_resources.append(f"⚙️ 铁过剩: {format_excess_value(result['excess']['iron'])}")
+            excess_display = format_large_value(result['excess']['iron'], show_original_unit=True)
+            excess_resources.append(f"⚙️ 铁过剩: {excess_display}")
         
         if excess_resources:
             for excess in excess_resources:
@@ -402,11 +433,8 @@ if calculate_button:
                         percentage = (value / total_added) * 100
                         st.markdown(f"**{name}**")
                         st.progress(min(100, percentage/100))
-                        # 格式化补充量的显示
-                        if value >= 10000:
-                            display_text = f"{value:.2f}万 ({value/10000:.2f}亿)"
-                        else:
-                            display_text = f"{value:.2f}万"
+                        # 格式化显示
+                        display_text = format_large_value(value)
                         st.markdown(f"{display_text} ({percentage:.1f}%)")
         
     except Exception as e:
