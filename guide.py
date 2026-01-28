@@ -155,7 +155,7 @@ navigation_page_url = "https://your-navigation-app.streamlit.app/"  # 请替换�
 # 微信环境提示 - 完全按照您提供的文字，现在左对齐
 st.markdown("""
 <div class="wechat-tip">
-    手机端微信直接点击链接进来的在这里点击"打开应用"可能无法跳转，需要复制该导航页链接或者单个应用链接到网页端打开
+    手机端微信直接点击链接进来的在本页面点击"打开应用"可能无法跳转，需要复制该导航页链接或者单个应用链接到网页端打开
 </div>
 """, unsafe_allow_html=True)
 
