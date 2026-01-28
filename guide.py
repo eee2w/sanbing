@@ -187,21 +187,21 @@ html(nav_card_html)
 apps = [
     {
         "name": "资源计算器",
-        "url": "https://azbapcbtjvkpq8esq5q8f2.streamlit.app/",
+        "url": "https://sanbing-n5bezq4hqemuts7jhewaat.streamlit.app/",
         "description": "计算包裹内资源总量",
         "icon": "📊",
         "status": "online"
     },
     {
         "name": "神兵玉石消耗计算",
-        "url": "https://eu5fctgjsakgp8strse8ku.streamlit.app/",
+        "url": "https://sanbing-leplbmdgnmbpzpmsmfrgsv.streamlit.app/",
         "description": "计算神兵玉石升级消耗及活动积分兑换是否充足",
         "icon": "⚔️",
         "status": "online"
     },
     {
         "name": "积分兑换神兵玉石材料自动推荐",
-        "url": "https://cenpecvplwojqgxvtn5y5n.streamlit.app/",
+        "url": "https://sanbing-6zn95b84u7tmscgwm2e5bt.streamlit.app/",
         "description": "智能推荐活动积分如何兑换神兵玉石材料",
         "icon": "📅",
         "status": "online"
