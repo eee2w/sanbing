@@ -48,7 +48,7 @@ with st.sidebar:
     POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=30.0, step=1.0, format="%.2f")
     POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=6.0, step=0.1, format="%.2f")
 
-st.markdown("---")
+#st.markdown("---")
 
 # --- 等级差设置（从侧边栏移到这里，改为加减号调整）---
 st.subheader("等级差设置")
