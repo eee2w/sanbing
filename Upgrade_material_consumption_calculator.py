@@ -196,7 +196,7 @@ for i, item in enumerate(st.session_state.extra_items):
         st.session_state.extra_items[i]['name'] = st.text_input(
             "物品名称", 
             value=item['name'],
-            placeholder="如：元宝、将魂等",
+            placeholder="如：皮肤、金箱子等",
             key=f"extra_name_{i}"
         )
     with cols[1]:
