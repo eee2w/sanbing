@@ -141,18 +141,31 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# 微信环境提示
-st.markdown("""
+# 获取当前页面URL（导航页自身链接）
+# 注意：在Streamlit Cloud上可能需要使用完整URL
+# 这里假设您的导航页部署在某个固定URL，您需要将其替换为实际地址
+navigation_page_url = "https://your-navigation-app.streamlit.app/"  # 请替换为您的实际导航页地址
+
+# 微信环境提示 - 已按您的要求修改
+st.markdown(f"""
 <div class="wechat-tip">
-    <strong>📱 微信内访问指引：</strong><br>
-    1. 尝试点击下方"打开应用"按钮直接跳转<br>
-    2. 如果无法跳转，<strong>长按下方链接</strong>选择"复制"<br>
-    3. 粘贴到手机浏览器中打开
+    <strong>📱 手机端微信访问指引：</strong><br>
+    直接点击链接进入本页后，点击下方"打开应用"可能无法跳转。<br>
+    如需正常使用，请复制<b>本导航页链接</b>或<b>单个应用链接</b>到手机浏览器中打开。
 </div>
 """, unsafe_allow_html=True)
 
-# 应用信息
+# 应用信息列表
 apps = [
+    # 首先添加导航页自身的链接卡片
+    {
+        "name": "本导航页",
+        "url": navigation_page_url,  # 使用上面定义的导航页URL
+        "description": "本页面链接，复制到浏览器可解决微信内跳转问题",
+        "icon": "🏠",  # 使用房子图标表示主页/导航页
+        "status": "online"
+    },
+    # 原有的应用卡片
     {
         "name": "资源计算器",
         "url": "https://azbapcbtjvkpq8esq5q8f2.streamlit.app/",
@@ -211,7 +224,8 @@ for app in apps:
 # 页脚说明
 st.markdown("""
 <div class="footer-tip">
-    <strong>使用提示：</strong>电脑浏览器可直接点击"打开应用"按钮<br>
-    手机微信内建议使用"长按链接复制 → 浏览器粘贴访问"的方式
+    <strong>使用提示：</strong><br>
+    1. 电脑浏览器可直接点击"打开应用"按钮<br>
+    2. 手机微信内建议复制链接到浏览器访问
 </div>
 """, unsafe_allow_html=True)
