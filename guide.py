@@ -217,7 +217,7 @@ apps = [
 
 # 显示应用卡片（这些卡片有"打开应用"按钮）
 for app in apps:
-    status_text = "（可使用）" if app["status"] == "online" else "（开发中）"
+    status_text = "（可使用）" if app["status"] == "online" else "（维护中）"
     status_class = "status-online" if app["status"] == "online" else "status-dev"
     
     card_html = f"""
