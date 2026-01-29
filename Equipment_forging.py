@@ -73,11 +73,6 @@ with tab1:
     # 动态生成装备计算条目
     st.subheader("装备设置")
     
-    # 添加装备的按钮
-    if st.button("➕ 添加装备", type="secondary"):
-        st.session_state.equipment_calculations.append({"部位": "头盔", "当前等级": 0, "目标等级": 10})
-        st.rerun()
-    
     # 显示所有装备计算条目
     for i, equipment in enumerate(st.session_state.equipment_calculations):
         st.markdown(f"### 装备 {i+1}")
@@ -117,6 +112,13 @@ with tab1:
                     st.rerun()
         
         st.markdown("---")
+    
+    # 添加装备的按钮（放在最下面）
+    col_add, _ = st.columns([1, 5])
+    with col_add:
+        if st.button("➕ 添加装备", type="secondary"):
+            st.session_state.equipment_calculations.append({"部位": "头盔", "当前等级": 0, "目标等级": 10})
+            st.rerun()
     
     # 计算按钮
     if st.button("开始计算", type="primary", use_container_width=True):
