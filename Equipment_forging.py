@@ -43,7 +43,7 @@ if 'equipment_types' not in st.session_state:
     st.session_state.equipment_types = ["头盔", "铠甲", "臂甲", "战靴"]
 
 if 'equipment_calculations' not in st.session_state:
-    st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 10}]
+    st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 0}]
 
 # 专武升级消耗函数
 def calculate_exclusive_weapon_cost(current_level, target_level):
@@ -247,9 +247,7 @@ with tab3:
     st.markdown("""
     ### 专武升级规则
     - 专武等级范围：0级到10级
-    - 升级消耗材料：专武碎片
-    - 消耗规则：从n级升到n+1级需要消耗50×(n+1)个碎片
-    - 例如：0级升1级需要50碎片，1级升2级需要100碎片，以此类推
+    - 消耗规则：第一级消耗50碎片，后面每级增加50
     """)
     
     # 专武等级选择
@@ -269,7 +267,7 @@ with tab3:
         exclusive_target_level = st.selectbox(
             "目标等级",
             options=list(range(1, 11)),  # 1-10
-            index=5,  # 默认5级
+            index=0,  # 默认0级
             key="exclusive_target"
         )
     
