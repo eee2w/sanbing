@@ -45,7 +45,22 @@ if 'equipment_types' not in st.session_state:
 if 'equipment_calculations' not in st.session_state:
     st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 10}]
 
-# 计算消耗的函数
+# 专武升级消耗函数
+def calculate_exclusive_weapon_cost(current_level, target_level):
+    """计算专武从当前等级升级到目标等级的总消耗"""
+    if current_level >= target_level:
+        return 0
+    
+    total_fragments = 0
+    
+    # 从当前等级+1到目标等级，每级消耗增加50
+    for level in range(current_level + 1, target_level + 1):
+        # 第n级需要消耗50*n个碎片
+        total_fragments += 50 * level
+    
+    return total_fragments
+
+# 装备锻造消耗函数
 def calculate_cost(current_level, target_level):
     """计算从当前等级升级到目标等级的总消耗"""
     if current_level >= target_level:
@@ -61,11 +76,11 @@ def calculate_cost(current_level, target_level):
     
     return total_stones, total_equipments
 
-# 在顶部添加两个模式选项
+# 在顶部添加计算模式选项
 st.header("选择计算模式")
 
 # 创建选项卡
-tab1, tab2 = st.tabs(["🧮 计算锻造消耗", "📊 展示每级锻造消耗"])
+tab1, tab2, tab3 = st.tabs(["🧮 计算锻造消耗", "📊 展示每级锻造消耗", "🗡️ 专武升级"])
 
 with tab1:
     st.header("🧮 锻造消耗计算")
@@ -225,6 +240,108 @@ with tab2:
         use_container_width=True
     )
 
+with tab3:
+    st.header("🗡️ 专武升级")
+    
+    # 专武升级说明
+    st.markdown("""
+    ### 专武升级规则
+    - 专武等级范围：0级到10级
+    - 升级消耗材料：专武碎片
+    - 消耗规则：从n级升到n+1级需要消耗50×(n+1)个碎片
+    - 例如：0级升1级需要50碎片，1级升2级需要100碎片，以此类推
+    """)
+    
+    # 专武等级选择
+    st.subheader("专武等级设置")
+    
+    col_weapon1, col_weapon2 = st.columns(2)
+    
+    with col_weapon1:
+        exclusive_current_level = st.selectbox(
+            "当前等级",
+            options=list(range(0, 11)),  # 0-10
+            index=0,
+            key="exclusive_current"
+        )
+    
+    with col_weapon2:
+        exclusive_target_level = st.selectbox(
+            "目标等级",
+            options=list(range(1, 11)),  # 1-10
+            index=5,  # 默认5级
+            key="exclusive_target"
+        )
+    
+    # 计算专武升级消耗
+    if st.button("计算专武升级消耗", type="primary", use_container_width=True):
+        if exclusive_current_level >= exclusive_target_level:
+            st.error("目标等级必须大于当前等级!")
+        else:
+            # 计算总消耗
+            total_fragments = calculate_exclusive_weapon_cost(
+                exclusive_current_level, 
+                exclusive_target_level
+            )
+            
+            # 保存结果到session_state
+            st.session_state.exclusive_total_fragments = total_fragments
+            st.session_state.exclusive_current = exclusive_current_level
+            st.session_state.exclusive_target = exclusive_target_level
+    
+    # 显示专武升级计算结果
+    if 'exclusive_total_fragments' in st.session_state:
+        st.markdown("---")
+        st.header("📋 专武升级计算结果")
+        
+        # 显示总消耗
+        st.subheader(f"专武升级消耗 ({st.session_state.exclusive_current}级 → {st.session_state.exclusive_target}级)")
+        
+        st.metric(
+            label="总专武碎片消耗",
+            value=f"{st.session_state.exclusive_total_fragments}个"
+        )
+        
+        # 显示各级消耗详情
+        st.subheader("各级消耗详情")
+        
+        detail_data = []
+        for level in range(st.session_state.exclusive_current + 1, st.session_state.exclusive_target + 1):
+            fragments_needed = 50 * level
+            detail_data.append({
+                "升级区间": f"{level-1} → {level}",
+                "所需碎片": fragments_needed
+            })
+        
+        detail_df = pd.DataFrame(detail_data)
+        st.dataframe(
+            detail_df,
+            column_config={
+                "升级区间": "升级区间",
+                "所需碎片": st.column_config.NumberColumn("所需碎片")
+            },
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # 显示累计消耗图
+        st.subheader("累计消耗趋势")
+        
+        cumulative_data = []
+        cumulative_fragments = 0
+        for level in range(st.session_state.exclusive_current + 1, st.session_state.exclusive_target + 1):
+            fragments_needed = 50 * level
+            cumulative_fragments += fragments_needed
+            cumulative_data.append({
+                "等级": level,
+                "单级消耗": fragments_needed,
+                "累计消耗": cumulative_fragments
+            })
+        
+        if cumulative_data:
+            cumulative_df = pd.DataFrame(cumulative_data).set_index("等级")
+            st.line_chart(cumulative_df[["单级消耗", "累计消耗"]])
+
 # 底部信息
 st.markdown("---")
-st.caption("装备锻造消耗计算器 v1.0")
+st.caption("装备锻造消耗计算器 v1.0 | 支持装备锻造和专武升级计算")
