@@ -42,6 +42,7 @@ if 'forge_cost_table' not in st.session_state:
 if 'equipment_types' not in st.session_state:
     st.session_state.equipment_types = ["头盔", "铠甲", "臂甲", "战靴"]
 
+# 初始化装备计算列表，所有值都设为0或最小值
 if 'equipment_calculations' not in st.session_state:
     st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 0}]
 
@@ -106,15 +107,15 @@ with tab1:
             equipment["当前等级"] = st.selectbox(
                 f"当前等级 {i+1}",
                 options=list(range(0, 20)),  # 0-19
-                index=equipment["当前等级"],
+                index=equipment["当前等级"],  # 默认为0
                 key=f"current_{i}"
             )
         
         with col3:
             equipment["目标等级"] = st.selectbox(
                 f"目标等级 {i+1}",
-                options=list(range(1, 21)),  # 1-20
-                index=equipment["目标等级"]-1 if equipment["目标等级"] > 0 else 9,
+                options=list(range(0, 21)),  # 0-20
+                index=equipment["目标等级"],  # 默认为0
                 key=f"target_{i}"
             )
         
@@ -132,7 +133,8 @@ with tab1:
     col_add, _ = st.columns([1, 5])
     with col_add:
         if st.button("➕ 添加装备", type="secondary"):
-            st.session_state.equipment_calculations.append({"部位": "头盔", "当前等级": 0, "目标等级": 10})
+            # 新添加的装备也设为默认值0
+            st.session_state.equipment_calculations.append({"部位": "头盔", "当前等级": 0, "目标等级": 0})
             st.rerun()
     
     # 计算按钮
@@ -247,7 +249,9 @@ with tab3:
     st.markdown("""
     ### 专武升级规则
     - 专武等级范围：0级到10级
-    - 消耗规则：第一级消耗50碎片，后面每级增加50
+    - 升级消耗材料：专武碎片
+    - 消耗规则：从n级升到n+1级需要消耗50×(n+1)个碎片
+    - 例如：0级升1级需要50碎片，1级升2级需要100碎片，以此类推
     """)
     
     # 专武等级选择
@@ -259,15 +263,15 @@ with tab3:
         exclusive_current_level = st.selectbox(
             "当前等级",
             options=list(range(0, 11)),  # 0-10
-            index=0,
+            index=0,  # 默认为0
             key="exclusive_current"
         )
     
     with col_weapon2:
         exclusive_target_level = st.selectbox(
             "目标等级",
-            options=list(range(1, 11)),  # 1-10
-            index=0,  # 默认0级
+            options=list(range(0, 11)),  # 0-10
+            index=0,  # 默认为0
             key="exclusive_target"
         )
     
