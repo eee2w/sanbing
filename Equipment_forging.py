@@ -42,11 +42,11 @@ if 'forge_cost_table' not in st.session_state:
 if 'equipment_types' not in st.session_state:
     st.session_state.equipment_types = ["头盔", "铠甲", "臂甲", "战靴"]
 
-if 'calculation_sets' not in st.session_state:
-    st.session_state.calculation_sets = [{"部位": "头盔", "当前等级": 0, "目标等级": 10}]
+if 'equipment_calculations' not in st.session_state:
+    st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 10}]
 
 # 计算消耗的函数
-def calculate_cost(current_level, target_level, equipment_count=1):
+def calculate_cost(current_level, target_level):
     """计算从当前等级升级到目标等级的总消耗"""
     if current_level >= target_level:
         return 0, 0
@@ -59,10 +59,6 @@ def calculate_cost(current_level, target_level, equipment_count=1):
         total_stones += st.session_state.forge_cost_table[level][0]
         total_equipments += st.session_state.forge_cost_table[level][1]
     
-    # 乘以装备件数
-    total_stones *= equipment_count
-    total_equipments *= equipment_count
-    
     return total_stones, total_equipments
 
 # 在顶部添加两个模式选项
@@ -74,96 +70,83 @@ tab1, tab2 = st.tabs(["🧮 计算锻造消耗", "📊 展示每级锻造消耗"
 with tab1:
     st.header("🧮 锻造消耗计算")
     
-    # 全局装备件数设置
-    equipment_count = st.number_input(
-        "每类装备的件数:",
-        min_value=1,
-        max_value=100,
-        value=1,
-        help="每类装备需要锻造的件数"
-    )
+    # 动态生成装备计算条目
+    st.subheader("装备设置")
     
-    # 动态生成计算套件
-    st.subheader("计算套件设置")
-    
-    # 添加套件的按钮
-    if st.button("➕ 添加计算套件", type="secondary"):
-        st.session_state.calculation_sets.append({"部位": "头盔", "当前等级": 0, "目标等级": 10})
+    # 添加装备的按钮
+    if st.button("➕ 添加装备", type="secondary"):
+        st.session_state.equipment_calculations.append({"部位": "头盔", "当前等级": 0, "目标等级": 10})
         st.rerun()
     
-    # 显示所有计算套件
-    for i, calc_set in enumerate(st.session_state.calculation_sets):
-        st.markdown(f"### 套件 {i+1}")
+    # 显示所有装备计算条目
+    for i, equipment in enumerate(st.session_state.equipment_calculations):
+        st.markdown(f"### 装备 {i+1}")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            calc_set["部位"] = st.selectbox(
+            equipment["部位"] = st.selectbox(
                 f"选择部位 {i+1}",
                 options=st.session_state.equipment_types,
-                index=st.session_state.equipment_types.index(calc_set["部位"]),
+                index=st.session_state.equipment_types.index(equipment["部位"]),
                 key=f"equipment_{i}"
             )
         
         with col2:
-            calc_set["当前等级"] = st.slider(
+            equipment["当前等级"] = st.selectbox(
                 f"当前等级 {i+1}",
-                min_value=0,
-                max_value=19,
-                value=calc_set["当前等级"],
+                options=list(range(0, 20)),  # 0-19
+                index=equipment["当前等级"],
                 key=f"current_{i}"
             )
         
         with col3:
-            calc_set["目标等级"] = st.slider(
+            equipment["目标等级"] = st.selectbox(
                 f"目标等级 {i+1}",
-                min_value=1,
-                max_value=20,
-                value=calc_set["目标等级"],
+                options=list(range(1, 21)),  # 1-20
+                index=equipment["目标等级"]-1 if equipment["目标等级"] > 0 else 9,
                 key=f"target_{i}"
             )
         
         # 删除按钮
         col_del, _ = st.columns([1, 5])
         with col_del:
-            if st.button(f"🗑️ 删除套件 {i+1}", key=f"delete_{i}"):
-                if len(st.session_state.calculation_sets) > 1:
-                    st.session_state.calculation_sets.pop(i)
+            if st.button(f"🗑️ 删除装备 {i+1}", key=f"delete_{i}"):
+                if len(st.session_state.equipment_calculations) > 1:
+                    st.session_state.equipment_calculations.pop(i)
                     st.rerun()
         
         st.markdown("---")
     
     # 计算按钮
     if st.button("开始计算", type="primary", use_container_width=True):
-        # 检查所有套件的有效性
+        # 检查所有装备的有效性
         valid = True
-        for i, calc_set in enumerate(st.session_state.calculation_sets):
-            if calc_set["当前等级"] >= calc_set["目标等级"]:
-                st.error(f"套件 {i+1}: 目标等级必须大于当前等级!")
+        for i, equipment in enumerate(st.session_state.equipment_calculations):
+            if equipment["当前等级"] >= equipment["目标等级"]:
+                st.error(f"装备 {i+1}: 目标等级必须大于当前等级!")
                 valid = False
         
         if valid:
-            # 计算所有套件的消耗
+            # 计算所有装备的消耗
             results = []
             total_stones_all = 0
             total_equipments_all = 0
             
-            for i, calc_set in enumerate(st.session_state.calculation_sets):
+            for i, equipment in enumerate(st.session_state.equipment_calculations):
                 stones, equipments = calculate_cost(
-                    calc_set["当前等级"], 
-                    calc_set["目标等级"], 
-                    equipment_count
+                    equipment["当前等级"], 
+                    equipment["目标等级"]
                 )
                 
                 total_stones_all += stones
                 total_equipments_all += equipments
                 
                 results.append({
-                    "套件": i+1,
-                    "部位": calc_set["部位"],
-                    "当前等级": calc_set["当前等级"],
-                    "目标等级": calc_set["目标等级"],
-                    "件数": equipment_count,
+                    "序号": i+1,
+                    "部位": equipment["部位"],
+                    "当前等级": equipment["当前等级"],
+                    "目标等级": equipment["目标等级"],
                     "锻造石": stones,
                     "金色装备": equipments
                 })
@@ -179,7 +162,7 @@ with tab1:
         st.header("📋 计算结果")
         
         # 显示总体结果
-        st.subheader(f"总体消耗 (共{len(st.session_state.calculation_sets)}个套件)")
+        st.subheader(f"总体消耗 (共{len(st.session_state.equipment_calculations)}个装备)")
         
         col_total1, col_total2 = st.columns(2)
         with col_total1:
@@ -195,17 +178,16 @@ with tab1:
             )
         
         # 显示详细结果
-        st.subheader("各套件详细消耗")
+        st.subheader("各装备详细消耗")
         
         results_df = pd.DataFrame(st.session_state.calc_results)
         st.dataframe(
             results_df,
             column_config={
-                "套件": "套件编号",
+                "序号": "序号",
                 "部位": "装备部位",
                 "当前等级": "当前等级",
                 "目标等级": "目标等级",
-                "件数": "装备件数",
                 "锻造石": st.column_config.NumberColumn("锻造石消耗"),
                 "金色装备": st.column_config.NumberColumn("金色装备消耗")
             },
@@ -220,15 +202,11 @@ with tab2:
     cost_data = []
     for level in range(1, 21):
         stones, equipments = st.session_state.forge_cost_table[level]
-        cumulative_stones = sum(st.session_state.forge_cost_table[i][0] for i in range(1, level+1))
-        cumulative_equipments = sum(st.session_state.forge_cost_table[i][1] for i in range(1, level+1))
         
         cost_data.append({
             "等级": level,
             "锻造石": stones,
-            "金色装备": equipments,
-            "累计锻造石": cumulative_stones,
-            "累计金色装备": cumulative_equipments
+            "金色装备": equipments
         })
     
     df = pd.DataFrame(cost_data)
@@ -239,9 +217,7 @@ with tab2:
         column_config={
             "等级": st.column_config.NumberColumn("等级"),
             "锻造石": st.column_config.NumberColumn("锻造石"),
-            "金色装备": st.column_config.NumberColumn("金色装备"),
-            "累计锻造石": st.column_config.NumberColumn("累计锻造石"),
-            "累计金色装备": st.column_config.NumberColumn("累计金色装备")
+            "金色装备": st.column_config.NumberColumn("金色装备")
         },
         hide_index=True,
         use_container_width=True
