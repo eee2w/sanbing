@@ -208,7 +208,7 @@ apps = [
     },
     {
         "name": "装备锻造和专武升级计算",
-        "url": "0",
+        "url": "https://sanbing-mnw79mfhlvpuuaqmtg667w.streamlit.app/",
         "description": "锻造石、金装和专武碎片消耗计算",
         "icon": "🔨",
         "status": "dev"
