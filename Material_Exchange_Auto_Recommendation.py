@@ -452,111 +452,6 @@ class AutoUpgradeCalculator:
         
         return item_name, is_weapon, upgrade_type
     
-    def can_upgrade_with_points(self, cost, points_left, is_weapon=True):
-        """检查是否有足够的积分来兑换所需材料"""
-        if is_weapon:
-            # 神兵材料
-            wood_needed = cost.get("wood", 0)
-            mithril_needed = cost.get("mithril", 0)
-            lapis_needed = cost.get("lapis", 0)
-            
-            # 计算需要兑换的材料（假设库存为0）
-            wood_deficit = max(0, wood_needed - self.current_wood)
-            mithril_deficit = max(0, mithril_needed - self.current_mithril)
-            lapis_deficit = max(0, lapis_needed - self.current_lapis)
-            
-            # 计算所需积分
-            points_needed = (
-                wood_deficit * self.points_per_wood +
-                mithril_deficit * self.points_per_mithril +
-                lapis_deficit * self.points_per_lapis
-            )
-            
-            # 检查积分是否足够
-            return points_left >= points_needed, points_needed
-        else:
-            # 玉石材料
-            knife_needed = cost.get("knife", 0)
-            jade_needed = cost.get("jade", 0)
-            
-            # 计算需要兑换的材料（假设库存为0）
-            knife_deficit = max(0, knife_needed - self.current_carving_knife)
-            jade_deficit = max(0, jade_needed - self.current_unpolished_jade)
-            
-            # 计算所需积分
-            points_needed = (
-                knife_deficit * self.points_per_carving_knife +
-                jade_deficit * self.points_per_unpolished_jade
-            )
-            
-            # 检查积分是否足够
-            return points_left >= points_needed, points_needed
-    
-    def use_resources_for_upgrade(self, cost, points_left, is_weapon=True):
-        """使用资源进行升级，包括库存和积分"""
-        points_needed = 0
-        
-        if is_weapon:
-            # 神兵材料
-            wood_needed = cost.get("wood", 0)
-            mithril_needed = cost.get("mithril", 0)
-            lapis_needed = cost.get("lapis", 0)
-            
-            # 先使用库存
-            wood_from_stock = min(self.current_wood, wood_needed)
-            mithril_from_stock = min(self.current_mithril, mithril_needed)
-            lapis_from_stock = min(self.current_lapis, lapis_needed)
-            
-            # 计算需要兑换的材料
-            wood_deficit = max(0, wood_needed - wood_from_stock)
-            mithril_deficit = max(0, mithril_needed - mithril_from_stock)
-            lapis_deficit = max(0, lapis_needed - lapis_from_stock)
-            
-            # 计算所需积分
-            points_needed = (
-                wood_deficit * self.points_per_wood +
-                mithril_deficit * self.points_per_mithril +
-                lapis_deficit * self.points_per_lapis
-            )
-            
-            # 检查积分是否足够
-            if points_left < points_needed:
-                return False, points_left, points_needed
-            
-            # 扣除库存材料（在实际应用中，这里应该更新库存，但我们在计算中只是模拟）
-            # 扣除积分
-            points_left -= points_needed
-            
-            return True, points_left, points_needed
-        else:
-            # 玉石材料
-            knife_needed = cost.get("knife", 0)
-            jade_needed = cost.get("jade", 0)
-            
-            # 先使用库存
-            knife_from_stock = min(self.current_carving_knife, knife_needed)
-            jade_from_stock = min(self.current_unpolished_jade, jade_needed)
-            
-            # 计算需要兑换的材料
-            knife_deficit = max(0, knife_needed - knife_from_stock)
-            jade_deficit = max(0, jade_needed - jade_from_stock)
-            
-            # 计算所需积分
-            points_needed = (
-                knife_deficit * self.points_per_carving_knife +
-                jade_deficit * self.points_per_unpolished_jade
-            )
-            
-            # 检查积分是否足够
-            if points_left < points_needed:
-                return False, points_left, points_needed
-            
-            # 扣除库存材料（在实际应用中，这里应该更新库存，但我们在计算中只是模拟）
-            # 扣除积分
-            points_left -= points_needed
-            
-            return True, points_left, points_needed
-    
     def find_max_levels(self):
         """按照新逻辑寻找在当前资源下能达到的最高等级"""
         # 初始化结果
@@ -570,6 +465,14 @@ class AutoUpgradeCalculator:
             "materials_needed": {},
             "points_left": self.current_points
         }
+        
+        # 初始化当前资源副本
+        points_left = self.current_points
+        current_wood = self.current_wood
+        current_mithril = self.current_mithril
+        current_lapis = self.current_lapis
+        current_carving_knife = self.current_carving_knife
+        current_unpolished_jade = self.current_unpolished_jade
         
         # 将当前等级转换为数字并存储
         weapon_current_nums = {}
@@ -587,8 +490,6 @@ class AutoUpgradeCalculator:
         # 尝试升级
         upgraded = False
         
-        # 初始化当前积分
-        points_left = self.current_points
         total_points_used = 0  # 总共使用的积分
         
         # 记录升级历史
@@ -596,6 +497,24 @@ class AutoUpgradeCalculator:
         
         # 用于记录无法升级的项目类型
         failed_upgrade_types = set()
+        
+        # 记录使用的库存材料
+        materials_used = {
+            "wood": 0,
+            "mithril": 0,
+            "lapis": 0,
+            "knife": 0,
+            "jade": 0
+        }
+        
+        # 记录需要购买的材料
+        materials_to_buy = {
+            "wood_need_buy": 0,
+            "mithril_need_buy": 0,
+            "lapis_need_buy": 0,
+            "knife_need_buy": 0,
+            "jade_need_buy": 0
+        }
         
         # 开始循环升级
         max_iterations = 100  # 防止无限循环
@@ -665,23 +584,87 @@ class AutoUpgradeCalculator:
                 # 计算升级成本
                 cost = self.calculate_upgrade_cost(current_num, target_num, "jade")
             
-            # 检查是否有足够的积分来升级
-            can_upgrade, points_needed = self.can_upgrade_with_points(cost, points_left, is_weapon)
+            # 检查是否有足够的积分来升级（使用当前库存）
+            if is_weapon:
+                # 神兵材料
+                wood_needed = cost.get("wood", 0)
+                mithril_needed = cost.get("mithril", 0)
+                lapis_needed = cost.get("lapis", 0)
+                
+                # 计算需要兑换的材料（使用当前库存）
+                wood_deficit = max(0, wood_needed - current_wood)
+                mithril_deficit = max(0, mithril_needed - current_mithril)
+                lapis_deficit = max(0, lapis_needed - current_lapis)
+                
+                # 计算所需积分
+                points_needed = (
+                    wood_deficit * self.points_per_wood +
+                    mithril_deficit * self.points_per_mithril +
+                    lapis_deficit * self.points_per_lapis
+                )
+                
+                # 检查积分是否足够
+                if points_left < points_needed:
+                    failed_upgrade_types.add(upgrade_type)
+                    continue
+                
+                # 更新库存和积分
+                wood_used = min(current_wood, wood_needed)
+                mithril_used = min(current_mithril, mithril_needed)
+                lapis_used = min(current_lapis, lapis_needed)
+                
+                current_wood -= wood_used
+                current_mithril -= mithril_used
+                current_lapis -= lapis_used
+                
+                # 记录材料使用
+                materials_used["wood"] += wood_used
+                materials_used["mithril"] += mithril_used
+                materials_used["lapis"] += lapis_used
+                
+                # 记录需要购买的材料
+                materials_to_buy["wood_need_buy"] += wood_deficit
+                materials_to_buy["mithril_need_buy"] += mithril_deficit
+                materials_to_buy["lapis_need_buy"] += lapis_deficit
+                
+            else:
+                # 玉石材料
+                knife_needed = cost.get("knife", 0)
+                jade_needed = cost.get("jade", 0)
+                
+                # 计算需要兑换的材料（使用当前库存）
+                knife_deficit = max(0, knife_needed - current_carving_knife)
+                jade_deficit = max(0, jade_needed - current_unpolished_jade)
+                
+                # 计算所需积分
+                points_needed = (
+                    knife_deficit * self.points_per_carving_knife +
+                    jade_deficit * self.points_per_unpolished_jade
+                )
+                
+                # 检查积分是否足够
+                if points_left < points_needed:
+                    failed_upgrade_types.add(upgrade_type)
+                    continue
+                
+                # 更新库存和积分
+                knife_used = min(current_carving_knife, knife_needed)
+                jade_used = min(current_unpolished_jade, jade_needed)
+                
+                current_carving_knife -= knife_used
+                current_unpolished_jade -= jade_used
+                
+                # 记录材料使用
+                materials_used["knife"] += knife_used
+                materials_used["jade"] += jade_used
+                
+                # 记录需要购买的材料
+                materials_to_buy["knife_need_buy"] += knife_deficit
+                materials_to_buy["jade_need_buy"] += jade_deficit
             
-            if not can_upgrade:
-                # 积分不足，标记这个类型为失败
-                failed_upgrade_types.add(upgrade_type)
-                continue
-            
-            # 使用资源进行升级
-            success, points_left, actual_points_needed = self.use_resources_for_upgrade(
-                cost, points_left, is_weapon
-            )
-            
-            if not success:
-                # 资源不足，标记这个类型为失败
-                failed_upgrade_types.add(upgrade_type)
-                continue
+            # 扣除积分
+            points_left -= points_needed
+            total_points_used += points_needed
             
             # 记录升级
             upgrade_history.append({
@@ -690,7 +673,7 @@ class AutoUpgradeCalculator:
                 "from_level": current_num,
                 "to_level": target_num,
                 "cost": cost,
-                "points_needed": actual_points_needed
+                "points_needed": points_needed
             })
             
             # 更新目标等级
@@ -700,7 +683,6 @@ class AutoUpgradeCalculator:
                 jade_target_nums[item_name] = target_num
             
             upgraded = True
-            total_points_used += actual_points_needed
         
         if not upgraded:
             return result
@@ -736,26 +718,14 @@ class AutoUpgradeCalculator:
             "jade": total_jade_needed
         }
         
-        # 计算需要购买的材料
-        materials_to_buy = {
-            "wood_need_buy": max(0, total_wood_needed - self.current_wood),
-            "mithril_need_buy": max(0, total_mithril_needed - self.current_mithril),
-            "lapis_need_buy": max(0, total_lapis_needed - self.current_lapis),
-            "knife_need_buy": max(0, total_knife_needed - self.current_carving_knife),
-            "jade_need_buy": max(0, total_jade_needed - self.current_unpolished_jade)
-        }
-        
         # 计算升级后剩余材料
-        materials_used = {
-            "wood": min(self.current_wood, total_materials_needed.get("wood", 0)),
-            "mithril": min(self.current_mithril, total_materials_needed.get("mithril", 0)),
-            "lapis": min(self.current_lapis, total_materials_needed.get("lapis", 0)),
-            "knife": min(self.current_carving_knife, total_materials_needed.get("knife", 0)),
-            "jade": min(self.current_unpolished_jade, total_materials_needed.get("jade", 0))
+        materials_left = {
+            "wood": current_wood,
+            "mithril": current_mithril,
+            "lapis": current_lapis,
+            "knife": current_carving_knife,
+            "jade": current_unpolished_jade
         }
-        
-        # 计算剩余积分
-        points_left = self.current_points - total_points_used
         
         # 计算玉石百分比实际值
         min_levels_final = self.get_min_levels(weapon_target_nums, jade_target_nums)
@@ -775,6 +745,7 @@ class AutoUpgradeCalculator:
             "materials_to_buy": materials_to_buy,
             "materials_used": materials_used,
             "materials_needed": total_materials_needed,
+            "materials_left": materials_left,
             "points_left": points_left,
             "foot_weapon_min": min_levels_final["foot_weapon_min"],
             "archer_weapon_min": min_levels_final["archer_weapon_min"],
@@ -948,6 +919,20 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
                     st.metric("璞玉", 
                              f"需要: {result['materials_needed'].get('jade', 0)}",
                              f"使用库存: {result['materials_used'].get('jade', 0)}")
+            
+            # 剩余材料
+            st.write("**剩余材料:**")
+            left_cols = st.columns(5)
+            left_materials = [
+                ("木头", result['materials_left'].get('wood', 0), "🪵"),
+                ("精金", result['materials_left'].get('mithril', 0), "⚙️"),
+                ("青金石", result['materials_left'].get('lapis', 0), "🔷"),
+                ("琢玉刀", result['materials_left'].get('knife', 0), "🔪"),
+                ("璞玉", result['materials_left'].get('jade', 0), "💎")
+            ]
+            
+            for idx, (name, amount, icon) in enumerate(left_materials):
+                left_cols[idx].metric(f"{icon} {name}", f"{amount}个")
         
         # 需要兑换的材料
         if any([result['materials_to_buy'].get('wood_need_buy', 0) > 0,
