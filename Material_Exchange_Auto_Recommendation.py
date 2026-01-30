@@ -513,11 +513,8 @@ class AutoUpgradeCalculator:
         }
         
         # 开始循环升级
-        max_iterations = 200  # 增加迭代次数
+        max_iterations = 100  # 防止无限循环
         iteration = 0
-        
-        # 调试信息
-        debug_info = []
         
         while iteration < max_iterations:
             iteration += 1
@@ -533,7 +530,6 @@ class AutoUpgradeCalculator:
             
             if not filtered_norms:
                 # 所有项目类型都失败了，退出循环
-                debug_info.append(f"迭代 {iteration}: 所有项目类型都失败了")
                 break
             
             # 找出需要升级的项目
@@ -547,7 +543,6 @@ class AutoUpgradeCalculator:
             
             if upgrade_type is None:
                 # 没有找到可升级的项目
-                debug_info.append(f"迭代 {iteration}: 没有找到可升级的项目")
                 break
             
             item_name, is_weapon, found_upgrade_type = self.find_item_to_upgrade(
@@ -557,7 +552,6 @@ class AutoUpgradeCalculator:
             if item_name is None:
                 # 没有找到具体的项目，将这个类型标记为失败
                 failed_upgrade_types.add(upgrade_type)
-                debug_info.append(f"迭代 {iteration}: 没有找到具体的项目，标记 {upgrade_type} 为失败")
                 continue
             
             # 获取当前等级和目标等级
@@ -569,7 +563,6 @@ class AutoUpgradeCalculator:
                 if current_num >= len(self.weapon_upgrade_costs):
                     # 标记这个类型已达到最大等级
                     failed_upgrade_types.add(upgrade_type)
-                    debug_info.append(f"迭代 {iteration}: {item_name} 已达到最大等级 {current_num}")
                     continue
                 
                 # 计算升级成本
@@ -582,7 +575,6 @@ class AutoUpgradeCalculator:
                 if current_num >= len(self.jade_upgrade_costs):
                     # 标记这个类型已达到最大等级
                     failed_upgrade_types.add(upgrade_type)
-                    debug_info.append(f"迭代 {iteration}: {item_name} 已达到最大等级 {current_num}")
                     continue
                 
                 # 计算升级成本
@@ -610,7 +602,6 @@ class AutoUpgradeCalculator:
                 # 检查积分是否足够
                 if points_left < points_needed:
                     failed_upgrade_types.add(upgrade_type)
-                    debug_info.append(f"迭代 {iteration}: 积分不足，需要 {points_needed:.2f}，剩余 {points_left}，标记 {upgrade_type} 为失败")
                     continue
                 
                 # 更新库存和积分
@@ -650,7 +641,6 @@ class AutoUpgradeCalculator:
                 # 检查积分是否足够
                 if points_left < points_needed:
                     failed_upgrade_types.add(upgrade_type)
-                    debug_info.append(f"迭代 {iteration}: 积分不足，需要 {points_needed:.2f}，剩余 {points_left}，标记 {upgrade_type} 为失败")
                     continue
                 
                 # 更新库存和积分
@@ -689,10 +679,6 @@ class AutoUpgradeCalculator:
                 jade_target_nums[item_name] = target_num
             
             upgraded = True
-            debug_info.append(f"迭代 {iteration}: 升级 {item_name} 从 {current_num} 到 {target_num}，消耗积分 {points_needed:.2f}，剩余积分 {points_left:.2f}")
-        
-        # 保存调试信息到结果中
-        result["debug_info"] = debug_info
         
         if not upgraded:
             return result
@@ -764,8 +750,7 @@ class AutoUpgradeCalculator:
             "foot_actual_percentage": foot_actual_percentage,
             "archer_actual_percentage": archer_actual_percentage,
             "normalized_levels": final_normalized_levels,
-            "upgrade_history": upgrade_history,
-            "debug_info": debug_info
+            "upgrade_history": upgrade_history
         }
         
         return result
@@ -778,18 +763,8 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
         calculator = AutoUpgradeCalculator(version, WEAPONS, JADES)
         result = calculator.find_max_levels()
     
-    # 显示调试信息（可选）
-    with st.expander("调试信息", expanded=False):
-        if "debug_info" in result:
-            for line in result["debug_info"]:
-                st.write(line)
-    
     if not result["upgraded"]:
         st.warning("当前积分和材料无法进行任何升级！请检查您的资源或降低等级差设置。")
-        st.write(f"当前积分: {CURRENT_POINTS}")
-        st.write(f"神兵0→1级所需积分: {1000*POINTS_PER_WOOD + 50*POINTS_PER_MITHRIL:.1f}")
-        st.write(f"玉石0→1级所需积分: {2*POINTS_PER_CARVING_KNIFE + 10*POINTS_PER_UNPOLISHED_JADE:.1f}")
-        st.write(f"所有材料库存为0，需要全部用积分兑换")
     else:
         st.success("计算完成！")
         
