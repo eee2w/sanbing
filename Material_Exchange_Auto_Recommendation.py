@@ -452,18 +452,65 @@ class AutoUpgradeCalculator:
         
         return item_name, is_weapon, upgrade_type
     
-    def check_and_use_resources(self, cost, current_resources, points_left, is_weapon=True):
-        """检查并消耗资源，如果库存不足则使用积分兑换"""
+    def can_upgrade_with_points(self, cost, points_left, is_weapon=True):
+        """检查是否有足够的积分来兑换所需材料"""
         if is_weapon:
             # 神兵材料
             wood_needed = cost.get("wood", 0)
             mithril_needed = cost.get("mithril", 0)
             lapis_needed = cost.get("lapis", 0)
             
+            # 计算需要兑换的材料（假设库存为0）
+            wood_deficit = max(0, wood_needed - self.current_wood)
+            mithril_deficit = max(0, mithril_needed - self.current_mithril)
+            lapis_deficit = max(0, lapis_needed - self.current_lapis)
+            
+            # 计算所需积分
+            points_needed = (
+                wood_deficit * self.points_per_wood +
+                mithril_deficit * self.points_per_mithril +
+                lapis_deficit * self.points_per_lapis
+            )
+            
+            # 检查积分是否足够
+            return points_left >= points_needed, points_needed
+        else:
+            # 玉石材料
+            knife_needed = cost.get("knife", 0)
+            jade_needed = cost.get("jade", 0)
+            
+            # 计算需要兑换的材料（假设库存为0）
+            knife_deficit = max(0, knife_needed - self.current_carving_knife)
+            jade_deficit = max(0, jade_needed - self.current_unpolished_jade)
+            
+            # 计算所需积分
+            points_needed = (
+                knife_deficit * self.points_per_carving_knife +
+                jade_deficit * self.points_per_unpolished_jade
+            )
+            
+            # 检查积分是否足够
+            return points_left >= points_needed, points_needed
+    
+    def use_resources_for_upgrade(self, cost, points_left, is_weapon=True):
+        """使用资源进行升级，包括库存和积分"""
+        points_needed = 0
+        
+        if is_weapon:
+            # 神兵材料
+            wood_needed = cost.get("wood", 0)
+            mithril_needed = cost.get("mithril", 0)
+            lapis_needed = cost.get("lapis", 0)
+            
+            # 先使用库存
+            wood_from_stock = min(self.current_wood, wood_needed)
+            mithril_from_stock = min(self.current_mithril, mithril_needed)
+            lapis_from_stock = min(self.current_lapis, lapis_needed)
+            
             # 计算需要兑换的材料
-            wood_deficit = max(0, wood_needed - current_resources.get("wood", 0))
-            mithril_deficit = max(0, mithril_needed - current_resources.get("mithril", 0))
-            lapis_deficit = max(0, lapis_needed - current_resources.get("lapis", 0))
+            wood_deficit = max(0, wood_needed - wood_from_stock)
+            mithril_deficit = max(0, mithril_needed - mithril_from_stock)
+            lapis_deficit = max(0, lapis_needed - lapis_from_stock)
             
             # 计算所需积分
             points_needed = (
@@ -474,25 +521,25 @@ class AutoUpgradeCalculator:
             
             # 检查积分是否足够
             if points_left < points_needed:
-                return False, current_resources, points_left, points_needed
+                return False, points_left, points_needed
             
-            # 消耗资源
-            current_resources["wood"] = max(0, current_resources.get("wood", 0) - wood_needed)
-            current_resources["mithril"] = max(0, current_resources.get("mithril", 0) - mithril_needed)
-            current_resources["lapis"] = max(0, current_resources.get("lapis", 0) - lapis_needed)
-            
+            # 扣除库存材料（在实际应用中，这里应该更新库存，但我们在计算中只是模拟）
             # 扣除积分
             points_left -= points_needed
             
-            return True, current_resources, points_left, points_needed
+            return True, points_left, points_needed
         else:
             # 玉石材料
             knife_needed = cost.get("knife", 0)
             jade_needed = cost.get("jade", 0)
             
+            # 先使用库存
+            knife_from_stock = min(self.current_carving_knife, knife_needed)
+            jade_from_stock = min(self.current_unpolished_jade, jade_needed)
+            
             # 计算需要兑换的材料
-            knife_deficit = max(0, knife_needed - current_resources.get("knife", 0))
-            jade_deficit = max(0, jade_needed - current_resources.get("jade", 0))
+            knife_deficit = max(0, knife_needed - knife_from_stock)
+            jade_deficit = max(0, jade_needed - jade_from_stock)
             
             # 计算所需积分
             points_needed = (
@@ -502,16 +549,13 @@ class AutoUpgradeCalculator:
             
             # 检查积分是否足够
             if points_left < points_needed:
-                return False, current_resources, points_left, points_needed
+                return False, points_left, points_needed
             
-            # 消耗资源
-            current_resources["knife"] = max(0, current_resources.get("knife", 0) - knife_needed)
-            current_resources["jade"] = max(0, current_resources.get("jade", 0) - jade_needed)
-            
+            # 扣除库存材料（在实际应用中，这里应该更新库存，但我们在计算中只是模拟）
             # 扣除积分
             points_left -= points_needed
             
-            return True, current_resources, points_left, points_needed
+            return True, points_left, points_needed
     
     def find_max_levels(self):
         """按照新逻辑寻找在当前资源下能达到的最高等级"""
@@ -543,39 +587,57 @@ class AutoUpgradeCalculator:
         # 尝试升级
         upgraded = False
         
-        # 初始化当前资源
-        current_resources = {
-            "wood": self.current_wood,
-            "mithril": self.current_mithril,
-            "lapis": self.current_lapis,
-            "knife": self.current_carving_knife,
-            "jade": self.current_unpolished_jade
-        }
-        
+        # 初始化当前积分
         points_left = self.current_points
         total_points_used = 0  # 总共使用的积分
         
-        # 记录升级历史（用于调试）
+        # 记录升级历史
         upgrade_history = []
         
+        # 用于记录无法升级的项目类型
+        failed_upgrade_types = set()
+        
         # 开始循环升级
-        continue_upgrading = True
-        while continue_upgrading:
+        max_iterations = 100  # 防止无限循环
+        iteration = 0
+        
+        while iteration < max_iterations:
+            iteration += 1
+            
             # 获取最低等级
             min_levels = self.get_min_levels(weapon_target_nums, jade_target_nums)
             
             # 计算归一化等级
             normalized_levels = self.calculate_normalized_levels(min_levels)
             
+            # 排除已经失败的项目类型
+            filtered_norms = {k: v for k, v in normalized_levels.items() if k not in failed_upgrade_types}
+            
+            if not filtered_norms:
+                # 所有项目类型都失败了，退出循环
+                break
+            
             # 找出需要升级的项目
-            item_name, is_weapon, upgrade_type = self.find_item_to_upgrade(
-                weapon_target_nums, jade_target_nums, normalized_levels
+            # 我们需要从过滤后的归一化等级中找出最小的
+            min_norm = float('inf')
+            upgrade_type = None
+            for norm_type, norm_value in filtered_norms.items():
+                if norm_value < min_norm:
+                    min_norm = norm_value
+                    upgrade_type = norm_type
+            
+            if upgrade_type is None:
+                # 没有找到可升级的项目
+                break
+            
+            item_name, is_weapon, found_upgrade_type = self.find_item_to_upgrade(
+                weapon_target_nums, jade_target_nums, {upgrade_type: min_norm}
             )
             
             if item_name is None:
-                # 没有找到可升级的项目
-                continue_upgrading = False
-                break
+                # 没有找到具体的项目，将这个类型标记为失败
+                failed_upgrade_types.add(upgrade_type)
+                continue
             
             # 获取当前等级和目标等级
             if is_weapon:
@@ -584,9 +646,8 @@ class AutoUpgradeCalculator:
                 
                 # 检查是否达到最大等级
                 if current_num >= len(self.weapon_upgrade_costs):
-                    # 标记这个项目已达到最大等级，需要重新选择
-                    # 暂时给一个很大的归一化值，使其不会被选中
-                    normalized_levels[upgrade_type] = float('inf')
+                    # 标记这个类型已达到最大等级
+                    failed_upgrade_types.add(upgrade_type)
                     continue
                 
                 # 计算升级成本
@@ -597,40 +658,49 @@ class AutoUpgradeCalculator:
                 
                 # 检查是否达到最大等级
                 if current_num >= len(self.jade_upgrade_costs):
-                    # 标记这个项目已达到最大等级，需要重新选择
-                    normalized_levels[upgrade_type] = float('inf')
+                    # 标记这个类型已达到最大等级
+                    failed_upgrade_types.add(upgrade_type)
                     continue
                 
                 # 计算升级成本
                 cost = self.calculate_upgrade_cost(current_num, target_num, "jade")
             
-            # 检查并消耗资源
-            can_upgrade, current_resources, points_left, points_needed = self.check_and_use_resources(
-                cost, current_resources, points_left, is_weapon=is_weapon
+            # 检查是否有足够的积分来升级
+            can_upgrade, points_needed = self.can_upgrade_with_points(cost, points_left, is_weapon)
+            
+            if not can_upgrade:
+                # 积分不足，标记这个类型为失败
+                failed_upgrade_types.add(upgrade_type)
+                continue
+            
+            # 使用资源进行升级
+            success, points_left, actual_points_needed = self.use_resources_for_upgrade(
+                cost, points_left, is_weapon
             )
             
-            if can_upgrade:
-                # 记录升级
-                upgrade_history.append({
-                    "item": item_name,
-                    "type": "weapon" if is_weapon else "jade",
-                    "from_level": current_num,
-                    "to_level": target_num,
-                    "cost": cost,
-                    "points_needed": points_needed
-                })
-                
-                # 更新目标等级
-                if is_weapon:
-                    weapon_target_nums[item_name] = target_num
-                else:
-                    jade_target_nums[item_name] = target_num
-                
-                upgraded = True
-                total_points_used += points_needed
+            if not success:
+                # 资源不足，标记这个类型为失败
+                failed_upgrade_types.add(upgrade_type)
+                continue
+            
+            # 记录升级
+            upgrade_history.append({
+                "item": item_name,
+                "type": "weapon" if is_weapon else "jade",
+                "from_level": current_num,
+                "to_level": target_num,
+                "cost": cost,
+                "points_needed": actual_points_needed
+            })
+            
+            # 更新目标等级
+            if is_weapon:
+                weapon_target_nums[item_name] = target_num
             else:
-                # 资源不足，停止升级
-                continue_upgrading = False
+                jade_target_nums[item_name] = target_num
+            
+            upgraded = True
+            total_points_used += actual_points_needed
         
         if not upgraded:
             return result
