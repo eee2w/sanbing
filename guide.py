@@ -204,7 +204,7 @@ apps = [
         "url": "https://sanbing-owwxmsziy9dpvq9fp3ijvc.streamlit.app/",
         "description": "智能推荐活动积分如何兑换神兵玉石材料",
         "icon": "📅",
-        "status": "dev"
+        "status": "online"
     },
     {
         "name": "装备锻造和专武升级计算",
@@ -252,6 +252,6 @@ st.markdown("""
 <div class="footer-tip">
     <strong>使用提示：</strong><br>
     1. 电脑用户直接点击即可<br>
-    2. 遇到问题请向玩大蛋反馈
+    2. 遇到问题请向1119-玩大蛋反馈
 </div>
 """, unsafe_allow_html=True)
