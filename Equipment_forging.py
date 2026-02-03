@@ -21,6 +21,7 @@ st.info(
     5、步头甲16  弓臂鞋16
     """
 )
+
 # 初始化session_state
 if 'forge_cost_table' not in st.session_state:
     # 根据新规则动态生成消耗表 - 0-20级，每级消耗[锻造石, 金色装备]
@@ -275,7 +276,7 @@ with tab3:
             "当前等级",
             options=list(range(0, 11)),  # 0-10
             index=0,  # 默认为0
-            key="exclusive_current"
+            key="exclusive_weapon_current"  # 修改key名避免冲突
         )
     
     with col_weapon2:
@@ -283,7 +284,7 @@ with tab3:
             "目标等级",
             options=list(range(0, 11)),  # 0-10
             index=0,  # 默认为0
-            key="exclusive_target"
+            key="exclusive_weapon_target"  # 修改key名避免冲突
         )
     
     # 计算专武升级消耗
@@ -297,10 +298,10 @@ with tab3:
                 exclusive_target_level
             )
             
-            # 保存结果到session_state
-            st.session_state.exclusive_total_fragments = total_fragments
-            st.session_state.exclusive_current = exclusive_current_level
-            st.session_state.exclusive_target = exclusive_target_level
+            # 保存结果到session_state - 使用更具体的键名避免冲突
+            st.session_state.weapon_calc_total_fragments = total_fragments
+            st.session_state.weapon_current_level = exclusive_current_level
+            st.session_state.weapon_target_level = exclusive_target_level
             
             # 同时计算各级消耗详情用于显示
             detail_data = []
@@ -324,26 +325,26 @@ with tab3:
                     "累计消耗": cumulative_fragments
                 })
             
-            st.session_state.exclusive_detail_data = detail_data
-            st.session_state.exclusive_cumulative_data = cumulative_data
+            st.session_state.weapon_detail_data = detail_data
+            st.session_state.weapon_cumulative_data = cumulative_data
     
     # 显示专武升级计算结果
-    if 'exclusive_total_fragments' in st.session_state:
+    if 'weapon_calc_total_fragments' in st.session_state:
         st.markdown("---")
         st.header("📋 专武升级计算结果")
         
         # 显示总消耗
-        st.subheader(f"专武升级消耗 ({st.session_state.exclusive_current}级 → {st.session_state.exclusive_target}级)")
+        st.subheader(f"专武升级消耗 ({st.session_state.weapon_current_level}级 → {st.session_state.weapon_target_level}级)")
         
         st.metric(
             label="总专武碎片消耗",
-            value=f"{st.session_state.exclusive_total_fragments}个"
+            value=f"{st.session_state.weapon_calc_total_fragments}个"
         )
         
         # 显示各级消耗详情
         st.subheader("各级消耗详情")
         
-        detail_df = pd.DataFrame(st.session_state.exclusive_detail_data)
+        detail_df = pd.DataFrame(st.session_state.weapon_detail_data)
         st.dataframe(
             detail_df,
             column_config={
@@ -355,10 +356,10 @@ with tab3:
         )
         
         # 显示累计消耗图
-        if st.session_state.exclusive_cumulative_data:
+        if st.session_state.weapon_cumulative_data:
             st.subheader("累计消耗趋势")
             
-            cumulative_df = pd.DataFrame(st.session_state.exclusive_cumulative_data).set_index("等级")
+            cumulative_df = pd.DataFrame(st.session_state.weapon_cumulative_data).set_index("等级")
             st.line_chart(cumulative_df[["单级消耗", "累计消耗"]])
 
 # 底部信息
