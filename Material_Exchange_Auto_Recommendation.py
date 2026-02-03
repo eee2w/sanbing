@@ -31,7 +31,7 @@ with st.sidebar:
     st.header("📝 资源与等级设置")
     
     # 全局积分
-    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=100000, step=1)
+    CURRENT_POINTS = st.number_input("当前积分", min_value=0, value=0, step=1)
     
     st.subheader("神兵材料库存")
     CURRENT_WOOD = st.number_input("木头数量", min_value=0, value=0, step=1)
