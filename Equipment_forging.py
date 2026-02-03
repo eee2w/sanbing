@@ -46,20 +46,19 @@ if 'equipment_types' not in st.session_state:
 if 'equipment_calculations' not in st.session_state:
     st.session_state.equipment_calculations = [{"部位": "头盔", "当前等级": 0, "目标等级": 0}]
 
-# 专武升级消耗函数 - 方案B：每升一级比上一级多消耗50
+# 专武升级消耗函数 - 修正后的逻辑：升级消耗基于总升级次数
 def calculate_exclusive_weapon_cost(current_level, target_level):
-    """计算专武从当前等级升级到目标等级的总消耗 - 方案B"""
+    """计算专武从当前等级升级到目标等级的总消耗 - 修正版"""
     if current_level >= target_level:
         return 0
     
     total_fragments = 0
     
-    # 方案B：每升一级比上一级多消耗50
-    # 从0→1级开始：50, 100, 150, 200, ...
-    # 所以从current_level升级到target_level，需要计算每一级的消耗
-    for upgrade_step in range(1, target_level - current_level + 1):
-        # 第n步升级消耗：50 * n
-        total_fragments += 50 * upgrade_step
+    # 修正：第n次升级消耗50*n，从1开始计数
+    # 从当前等级到目标等级，每次升级消耗递增
+    for level in range(current_level + 1, target_level + 1):
+        # 第level次升级消耗：50 * level
+        total_fragments += 50 * level
     
     return total_fragments
 
@@ -254,16 +253,21 @@ with tab2:
 with tab3:
     st.header("🗡️ 专武升级")
     
-    # 专武升级说明 - 方案B
+    # 专武升级说明 - 修正版
     st.markdown("""
-    ### 专武升级规则（方案B）
+    ### 专武升级规则（修正版）
     - 专武等级范围：0级到10级
-    - 升级消耗：每升一级比上一级多消耗50
-    - 具体消耗：
-      - 0→1级：50碎片
-      - 1→2级：100碎片（增加50）
-      - 2→3级：150碎片（再增加50）
-      - 依此类推...
+    - 升级消耗：第1次升级（0→1）消耗50，第2次升级（1→2）消耗100，第3次升级（2→3）消耗150，以此类推
+    - 每次升级消耗比上一次多50
+    - **重要**：消耗是基于总升级次数的，不是从当前等级重新计算
+    - 具体示例：
+      - 0→1级：第1次升级，50碎片
+      - 1→2级：第2次升级，100碎片
+      - 2→3级：第3次升级，150碎片
+      - ...
+      - 8→9级：第9次升级，50×9=450碎片
+      - 9→10级：第10次升级，50×10=500碎片
+      - 因此，从8级升到10级总消耗：450+500=950碎片
     """)
     
     # 专武等级选择
@@ -292,7 +296,7 @@ with tab3:
         if exclusive_current_level >= exclusive_target_level:
             st.error("目标等级必须大于当前等级!")
         else:
-            # 计算总消耗 - 方案B
+            # 计算总消耗 - 修正版
             total_fragments = calculate_exclusive_weapon_cost(
                 exclusive_current_level, 
                 exclusive_target_level
@@ -306,14 +310,15 @@ with tab3:
             # 同时计算各级消耗详情用于显示
             detail_data = []
             
-            for upgrade_step in range(1, exclusive_target_level - exclusive_current_level + 1):
-                fragments_needed = 50 * upgrade_step
-                from_level = exclusive_current_level + upgrade_step - 1
-                to_level = exclusive_current_level + upgrade_step
+            for level in range(exclusive_current_level + 1, exclusive_target_level + 1):
+                fragments_needed = 50 * level
+                from_level = level - 1
+                to_level = level
                 
                 detail_data.append({
                     "升级区间": f"{from_level} → {to_level}",
-                    "所需碎片": fragments_needed
+                    "所需碎片": fragments_needed,
+                    "说明": f"第{level}次升级"
                 })
             
             st.session_state.weapon_detail_data = detail_data
@@ -339,7 +344,8 @@ with tab3:
             detail_df,
             column_config={
                 "升级区间": "升级区间",
-                "所需碎片": st.column_config.NumberColumn("所需碎片")
+                "所需碎片": st.column_config.NumberColumn("所需碎片"),
+                "说明": "说明"
             },
             use_container_width=True,
             hide_index=True
@@ -347,4 +353,4 @@ with tab3:
 
 # 底部信息
 st.markdown("---")
-st.caption("装备锻造消耗计算器 v1.2 | 支持装备锻造和专武升级计算（方案B）")
+st.caption("装备锻造消耗计算器 v1.3 | 支持装备锻造和专武升级计算（修正版）")
