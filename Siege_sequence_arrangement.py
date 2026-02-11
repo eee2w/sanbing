@@ -26,12 +26,11 @@ if 'defense_horse_names' not in st.session_state:
 if 'attack_order' not in st.session_state:
     st.session_state.attack_order = [0, 1, 2]
 
-# 初始化格子选择 - 现在每个格子可以选择马匹
+# 初始化格子选择
 if 'slot_selections' not in st.session_state:
-    # 总格子数 = 双方马匹数量总和
     total_slots = st.session_state.num_horses * 2
     st.session_state.slot_selections = {
-        'attack': [None] * total_slots,  # 每个格子存储马匹索引，None表示空
+        'attack': [None] * total_slots,
         'defense': [None] * total_slots
     }
 
@@ -58,26 +57,21 @@ with col1:
             )
             if new_name != st.session_state.attack_horse_names[i]:
                 st.session_state.attack_horse_names[i] = new_name
-                # 清除计算结果
                 if 'calculate_clicked' in st.session_state:
                     del st.session_state.calculate_clicked
         
         with col_name[2]:
             if i >= 2:
                 if st.button("🗑️", key=f"remove_attack_{i}"):
-                    # 删除马匹
                     st.session_state.num_horses -= 1
                     st.session_state.attack_horse_names.pop(i)
                     st.session_state.defense_horse_names.pop(i)
-                    # 更新进攻方顺序
                     st.session_state.attack_order = [x if x < i else x-1 for x in st.session_state.attack_order if x != i]
-                    # 重新初始化格子选择
                     total_slots = st.session_state.num_horses * 2
                     st.session_state.slot_selections = {
                         'attack': [None] * total_slots,
                         'defense': [None] * total_slots
                     }
-                    # 清除计算结果
                     if 'calculate_clicked' in st.session_state:
                         del st.session_state.calculate_clicked
                     st.rerun()
@@ -92,15 +86,12 @@ with col1:
                 st.session_state.num_horses += 1
                 st.session_state.attack_horse_names.append(f"进攻方马{st.session_state.num_horses}")
                 st.session_state.defense_horse_names.append(f"防守方马{st.session_state.num_horses}")
-                # 初始化进攻方顺序
                 st.session_state.attack_order = list(range(st.session_state.num_horses))
-                # 重新初始化格子选择
                 total_slots = st.session_state.num_horses * 2
                 st.session_state.slot_selections = {
                     'attack': [None] * total_slots,
                     'defense': [None] * total_slots
                 }
-                # 清除计算结果
                 if 'calculate_clicked' in st.session_state:
                     del st.session_state.calculate_clicked
                 st.rerun()
@@ -127,7 +118,6 @@ with col2:
             )
             if new_name != st.session_state.defense_horse_names[i]:
                 st.session_state.defense_horse_names[i] = new_name
-                # 清除计算结果
                 if 'calculate_clicked' in st.session_state:
                     del st.session_state.calculate_clicked
     
@@ -137,15 +127,12 @@ with col2:
             st.session_state.num_horses -= 1
             st.session_state.attack_horse_names.pop()
             st.session_state.defense_horse_names.pop()
-            # 更新进攻方顺序
             st.session_state.attack_order = [x for x in st.session_state.attack_order if x < st.session_state.num_horses]
-            # 重新初始化格子选择
             total_slots = st.session_state.num_horses * 2
             st.session_state.slot_selections = {
                 'attack': [None] * total_slots,
                 'defense': [None] * total_slots
             }
-            # 清除计算结果
             if 'calculate_clicked' in st.session_state:
                 del st.session_state.calculate_clicked
             st.rerun()
@@ -156,46 +143,46 @@ with col2:
 st.markdown("---")
 st.subheader("📊 双方战力对比")
 
-# 计算总格子数（双方马匹数量总和）
+# 计算总格子数
 total_slots = st.session_state.num_horses * 2
 
 # 创建战力对比界面
 col_attack_power, col_defense_power = st.columns(2)
 
 with col_attack_power:
+    # 处理进攻方格子的选择逻辑
     for slot_idx in range(total_slots):
-        # 创建选择框
+        # 获取当前格子的选择
         current_selection = st.session_state.slot_selections['attack'][slot_idx]
         
-        # 所有进攻方马匹都是可选的
+        # 创建所有可用选项（包括空和所有马匹）
         available_options = ["空"] + list(range(st.session_state.num_horses))
         
-        # 创建选择框
-        if current_selection is None:
-            default_index = 0
-        else:
-            default_index = current_selection + 1  # +1 因为第一个选项是"空"
+        # 确定当前选择的索引
+        default_index = 0 if current_selection is None else current_selection + 1
         
-        # 显示选择框
+        # 创建选择框
         selected_option = st.selectbox(
             f"格子{slot_idx+1}",
             options=available_options,
             index=default_index,
-            format_func=lambda x: "空" if x == "空" else st.session_state.attack_horse_names[x] if isinstance(x, int) else str(x),
+            format_func=lambda x: "空" if x == "空" else st.session_state.attack_horse_names[x],
             key=f"attack_slot_{slot_idx}",
             label_visibility="collapsed"
         )
         
-        # 检查选择是否改变
+        # 处理选择变化
         new_selection = None if selected_option == "空" else selected_option
         
+        # 检查是否需要更新
         if new_selection != current_selection:
-            # 如果新选择不是空，检查这匹马是否已经在其他格子中被选中
+            # 如果新选择不是空，检查是否与其他格子冲突
             if new_selection is not None:
-                for other_slot_idx in range(total_slots):
-                    if other_slot_idx != slot_idx and st.session_state.slot_selections['attack'][other_slot_idx] == new_selection:
-                        # 将之前选中这匹马的格子设为空
-                        st.session_state.slot_selections['attack'][other_slot_idx] = None
+                # 查找其他格子中是否有相同的马匹
+                for other_idx in range(total_slots):
+                    if other_idx != slot_idx and st.session_state.slot_selections['attack'][other_idx] == new_selection:
+                        # 清空冲突的格子
+                        st.session_state.slot_selections['attack'][other_idx] = None
             
             # 更新当前格子的选择
             st.session_state.slot_selections['attack'][slot_idx] = new_selection
@@ -204,43 +191,43 @@ with col_attack_power:
             if 'calculate_clicked' in st.session_state:
                 del st.session_state.calculate_clicked
             
-            # 重新运行以更新其他选择框的显示
+            # 重新运行以更新界面
             st.rerun()
 
 with col_defense_power:
+    # 处理防守方格子的选择逻辑
     for slot_idx in range(total_slots):
-        # 创建选择框
+        # 获取当前格子的选择
         current_selection = st.session_state.slot_selections['defense'][slot_idx]
         
-        # 所有防守方马匹都是可选的
+        # 创建所有可用选项（包括空和所有马匹）
         available_options = ["空"] + list(range(st.session_state.num_horses))
         
-        # 创建选择框
-        if current_selection is None:
-            default_index = 0
-        else:
-            default_index = current_selection + 1  # +1 因为第一个选项是"空"
+        # 确定当前选择的索引
+        default_index = 0 if current_selection is None else current_selection + 1
         
-        # 显示选择框
+        # 创建选择框
         selected_option = st.selectbox(
             f"格子{slot_idx+1}",
             options=available_options,
             index=default_index,
-            format_func=lambda x: "空" if x == "空" else st.session_state.defense_horse_names[x] if isinstance(x, int) else str(x),
+            format_func=lambda x: "空" if x == "空" else st.session_state.defense_horse_names[x],
             key=f"defense_slot_{slot_idx}",
             label_visibility="collapsed"
         )
         
-        # 检查选择是否改变
+        # 处理选择变化
         new_selection = None if selected_option == "空" else selected_option
         
+        # 检查是否需要更新
         if new_selection != current_selection:
-            # 如果新选择不是空，检查这匹马是否已经在其他格子中被选中
+            # 如果新选择不是空，检查是否与其他格子冲突
             if new_selection is not None:
-                for other_slot_idx in range(total_slots):
-                    if other_slot_idx != slot_idx and st.session_state.slot_selections['defense'][other_slot_idx] == new_selection:
-                        # 将之前选中这匹马的格子设为空
-                        st.session_state.slot_selections['defense'][other_slot_idx] = None
+                # 查找其他格子中是否有相同的马匹
+                for other_idx in range(total_slots):
+                    if other_idx != slot_idx and st.session_state.slot_selections['defense'][other_idx] == new_selection:
+                        # 清空冲突的格子
+                        st.session_state.slot_selections['defense'][other_idx] = None
             
             # 更新当前格子的选择
             st.session_state.slot_selections['defense'][slot_idx] = new_selection
@@ -249,7 +236,7 @@ with col_defense_power:
             if 'calculate_clicked' in st.session_state:
                 del st.session_state.calculate_clicked
             
-            # 重新运行以更新其他选择框的显示
+            # 重新运行以更新界面
             st.rerun()
 
 # 进攻方出场顺序设置
@@ -294,7 +281,6 @@ for i in range(st.session_state.num_horses):
         
         if selected_horse != st.session_state.attack_order[i]:
             st.session_state.attack_order[i] = selected_horse
-            # 清除计算结果
             if 'calculate_clicked' in st.session_state:
                 del st.session_state.calculate_clicked
         
