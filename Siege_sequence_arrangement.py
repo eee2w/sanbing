@@ -26,12 +26,11 @@ if 'defense_horse_names' not in st.session_state:
 if 'attack_order' not in st.session_state:
     st.session_state.attack_order = [0, 1, 2]
 
-# 初始化格子选择 - 现在每个格子可以选择马匹
+# 初始化格子选择
 if 'slot_selections' not in st.session_state:
-    # 总格子数 = 双方马匹数量总和
     total_slots = st.session_state.num_horses * 2
     st.session_state.slot_selections = {
-        'attack': [None] * total_slots,  # 每个格子存储马匹索引，None表示空
+        'attack': [None] * total_slots,
         'defense': [None] * total_slots
     }
 
@@ -74,6 +73,9 @@ with col1:
                         'attack': [None] * total_slots,
                         'defense': [None] * total_slots
                     }
+                    # 清除计算结果
+                    if 'calculate_clicked' in st.session_state:
+                        del st.session_state.calculate_clicked
                     st.rerun()
             else:
                 st.empty()
@@ -94,6 +96,9 @@ with col1:
                     'attack': [None] * total_slots,
                     'defense': [None] * total_slots
                 }
+                # 清除计算结果
+                if 'calculate_clicked' in st.session_state:
+                    del st.session_state.calculate_clicked
                 st.rerun()
             else:
                 st.warning("最多只能有6匹马！")
@@ -133,6 +138,9 @@ with col2:
                 'attack': [None] * total_slots,
                 'defense': [None] * total_slots
             }
+            # 清除计算结果
+            if 'calculate_clicked' in st.session_state:
+                del st.session_state.calculate_clicked
             st.rerun()
         else:
             st.warning("至少需要2匹马！")
@@ -194,6 +202,9 @@ with col_attack_power:
         if new_selection != st.session_state.slot_selections['attack'][slot_idx]:
             # 更新当前格子的选择
             st.session_state.slot_selections['attack'][slot_idx] = new_selection
+            # 清除计算结果
+            if 'calculate_clicked' in st.session_state:
+                del st.session_state.calculate_clicked
             st.rerun()
 
 with col_defense_power:
@@ -243,6 +254,9 @@ with col_defense_power:
         if new_selection != st.session_state.slot_selections['defense'][slot_idx]:
             # 更新当前格子的选择
             st.session_state.slot_selections['defense'][slot_idx] = new_selection
+            # 清除计算结果
+            if 'calculate_clicked' in st.session_state:
+                del st.session_state.calculate_clicked
             st.rerun()
 
 # 进攻方出场顺序设置
@@ -287,6 +301,9 @@ for i in range(st.session_state.num_horses):
         
         if selected_horse != st.session_state.attack_order[i]:
             st.session_state.attack_order[i] = selected_horse
+            # 清除计算结果
+            if 'calculate_clicked' in st.session_state:
+                del st.session_state.calculate_clicked
         
         new_attack_order.append(selected_horse)
 
@@ -301,15 +318,15 @@ def get_horse_position(side, horse_idx):
 
 def compare_horses(defense_idx, attack_idx):
     """比较两匹马的实力，根据格子位置"""
+    total_slots = st.session_state.num_horses * 2
     defense_pos = get_horse_position('defense', defense_idx)
     attack_pos = get_horse_position('attack', attack_idx)
     
-    if defense_pos is None or attack_pos is None:
-        # 如果有马匹未分配格子，按最弱处理
-        if defense_pos is None:
-            defense_pos = total_slots + 1
-        if attack_pos is None:
-            attack_pos = total_slots + 1
+    # 如果有马匹未分配格子，按最弱处理
+    if defense_pos is None:
+        defense_pos = total_slots + 1
+    if attack_pos is None:
+        attack_pos = total_slots + 1
     
     # 格子位置越小（越靠上）实力越强
     if defense_pos < attack_pos:  # 防守方位置更靠上
