@@ -1,5 +1,6 @@
 import streamlit as st
 from itertools import permutations
+import pandas as pd
 
 # 设置页面
 st.set_page_config(
@@ -23,7 +24,14 @@ if 'defense_horse_names' not in st.session_state:
     st.session_state.defense_horse_names = ["防守方上马", "防守方中马", "防守方下马"]
 
 if 'attack_order' not in st.session_state:
-    st.session_state.attack_order = [0, 1, 2]  # 默认顺序：上、中、下
+    st.session_state.attack_order = [0, 1, 2]
+
+# 初始化实力等级
+if 'attack_horse_levels' not in st.session_state:
+    st.session_state.attack_horse_levels = list(range(st.session_state.num_horses))
+
+if 'defense_horse_levels' not in st.session_state:
+    st.session_state.defense_horse_levels = list(range(st.session_state.num_horses))
 
 # 主界面分为两列
 col1, col2 = st.columns(2)
@@ -47,6 +55,9 @@ with col1:
                 st.session_state.defense_horse_names.append(f"防守方马{st.session_state.num_horses}")
                 # 初始化进攻方顺序
                 st.session_state.attack_order = list(range(st.session_state.num_horses))
+                # 初始化实力等级
+                st.session_state.attack_horse_levels = list(range(st.session_state.num_horses))
+                st.session_state.defense_horse_levels = list(range(st.session_state.num_horses))
                 st.rerun()
             else:
                 st.warning("最多只能有6匹马！")
@@ -54,13 +65,11 @@ with col1:
     # 为每匹马命名
     st.markdown("**为每匹马命名:**")
     
-    attack_names_changed = False
     for i in range(st.session_state.num_horses):
         col_name = st.columns([1, 4, 1])
         
         with col_name[0]:
-            # 显示马匹编号，1号最强
-            st.markdown(f"**{i+1}号马:**")
+            st.markdown(f"**马{i+1}:**")
         
         with col_name[1]:
             new_name = st.text_input(
@@ -71,10 +80,9 @@ with col1:
             )
             if new_name != st.session_state.attack_horse_names[i]:
                 st.session_state.attack_horse_names[i] = new_name
-                attack_names_changed = True
         
         with col_name[2]:
-            if i >= 2:  # 至少保留2匹马
+            if i >= 2:
                 if st.button("🗑️", key=f"remove_attack_{i}"):
                     # 删除马匹
                     st.session_state.num_horses -= 1
@@ -82,22 +90,25 @@ with col1:
                     st.session_state.defense_horse_names.pop(i)
                     # 更新进攻方顺序
                     st.session_state.attack_order = [x if x < i else x-1 for x in st.session_state.attack_order if x != i]
+                    # 更新实力等级
+                    st.session_state.attack_horse_levels.pop(i)
+                    st.session_state.defense_horse_levels.pop(i)
                     st.rerun()
             else:
-                st.empty()  # 占位符，保持对齐
+                st.empty()
 
 # 右侧：防守方设置
 with col2:
     st.subheader("🛡️ 防守方设置")
     
-    # 马匹数量显示（与进攻方同步）
+    # 马匹数量显示
     col2_1, col2_2 = st.columns([3, 1])
     
     with col2_1:
         st.markdown("**马匹数量:**")
     
     with col2_2:
-        # 删除马匹按钮（只在防守方显示）
+        # 删除马匹按钮
         if st.button("➖ 删除马匹", key="remove_defense"):
             if st.session_state.num_horses > 2:
                 st.session_state.num_horses -= 1
@@ -105,6 +116,9 @@ with col2:
                 st.session_state.defense_horse_names.pop()
                 # 更新进攻方顺序
                 st.session_state.attack_order = [x for x in st.session_state.attack_order if x < st.session_state.num_horses]
+                # 更新实力等级
+                st.session_state.attack_horse_levels.pop()
+                st.session_state.defense_horse_levels.pop()
                 st.rerun()
             else:
                 st.warning("至少需要2匹马！")
@@ -112,13 +126,11 @@ with col2:
     # 为防守方马匹命名
     st.markdown("**为每匹马命名:**")
     
-    defense_names_changed = False
     for i in range(st.session_state.num_horses):
         col_name = st.columns([1, 4])
         
         with col_name[0]:
-            # 显示马匹编号，1号最强
-            st.markdown(f"**{i+1}号马:**")
+            st.markdown(f"**马{i+1}:**")
         
         with col_name[1]:
             new_name = st.text_input(
@@ -129,7 +141,111 @@ with col2:
             )
             if new_name != st.session_state.defense_horse_names[i]:
                 st.session_state.defense_horse_names[i] = new_name
-                defense_names_changed = True
+
+# 双方战力对比
+st.markdown("---")
+st.subheader("📊 双方战力对比")
+
+st.markdown("""
+**使用方法：** 为每匹马指定一个实力等级（数字）。等级数字越小，实力越强。
+实力等级相同的马匹实力相当。等级数字可以重复，表示实力相当。
+""")
+
+# 创建战力对比界面
+st.markdown("### 设置马匹实力等级")
+
+# 创建两列显示进攻方和防守方
+col_attack_power, col_defense_power = st.columns(2)
+
+with col_attack_power:
+    st.markdown("**进攻方马匹实力等级:**")
+    for i in range(st.session_state.num_horses):
+        col_level = st.columns([3, 2])
+        with col_level[0]:
+            st.markdown(f"{st.session_state.attack_horse_names[i]}")
+        with col_level[1]:
+            # 实力等级选择器，数字越小实力越强
+            level = st.selectbox(
+                "实力等级",
+                options=list(range(1, st.session_state.num_horses + 1)),
+                index=st.session_state.attack_horse_levels[i],
+                key=f"attack_level_{i}",
+                label_visibility="collapsed"
+            )
+            if level != st.session_state.attack_horse_levels[i] + 1:
+                st.session_state.attack_horse_levels[i] = level - 1
+
+with col_defense_power:
+    st.markdown("**防守方马匹实力等级:**")
+    for i in range(st.session_state.num_horses):
+        col_level = st.columns([3, 2])
+        with col_level[0]:
+            st.markdown(f"{st.session_state.defense_horse_names[i]}")
+        with col_level[1]:
+            level = st.selectbox(
+                "实力等级",
+                options=list(range(1, st.session_state.num_horses + 1)),
+                index=st.session_state.defense_horse_levels[i],
+                key=f"defense_level_{i}",
+                label_visibility="collapsed"
+            )
+            if level != st.session_state.defense_horse_levels[i] + 1:
+                st.session_state.defense_horse_levels[i] = level - 1
+
+# 可视化战力对比
+st.markdown("### 战力对比可视化")
+
+# 创建可视化图表
+def create_power_chart():
+    # 收集所有马匹数据
+    all_horses = []
+    
+    # 进攻方马匹
+    for i in range(st.session_state.num_horses):
+        all_horses.append({
+            "马匹": st.session_state.attack_horse_names[i],
+            "阵营": "进攻方",
+            "实力等级": st.session_state.attack_horse_levels[i],
+            "显示等级": st.session_state.attack_horse_levels[i] + 1  # 显示给用户的等级（1开始）
+        })
+    
+    # 防守方马匹
+    for i in range(st.session_state.num_horses):
+        all_horses.append({
+            "马匹": st.session_state.defense_horse_names[i],
+            "阵营": "防守方",
+            "实力等级": st.session_state.defense_horse_levels[i],
+            "显示等级": st.session_state.defense_horse_levels[i] + 1
+        })
+    
+    # 创建DataFrame
+    df = pd.DataFrame(all_horses)
+    
+    # 按实力等级排序
+    df = df.sort_values(by=["实力等级", "阵营"])
+    
+    # 创建文本可视化
+    st.markdown("**战力排行榜 (从上到下，实力递减):**")
+    
+    # 获取唯一的实力等级并排序
+    unique_levels = sorted(df["实力等级"].unique())
+    
+    for level in unique_levels:
+        level_horses = df[df["实力等级"] == level]
+        level_display = level + 1
+        
+        if len(level_horses) == 1:
+            horse = level_horses.iloc[0]
+            st.markdown(f"**第{level_display}层:** {horse['马匹']} ({horse['阵营']})")
+        else:
+            horse_names = [f"{row['马匹']} ({row['阵营']})" for _, row in level_horses.iterrows()]
+            st.markdown(f"**第{level_display}层:** {', '.join(horse_names)} (实力相当)")
+        
+        # 添加分隔线（最后一层不添加）
+        if level != unique_levels[-1]:
+            st.markdown("---")
+
+create_power_chart()
 
 # 进攻方出场顺序设置
 st.markdown("---")
@@ -139,17 +255,14 @@ st.markdown("请为进攻方选择每场比赛的出赛马匹（每匹马只能�
 
 # 创建进攻方出场顺序选择
 remaining_horses = list(range(st.session_state.num_horses))
-attack_order_names = [st.session_state.attack_horse_names[idx] for idx in st.session_state.attack_order]
 
 # 检查是否有重复选择
 if len(set(st.session_state.attack_order)) != len(st.session_state.attack_order):
     st.error("每匹马只能出场一次！请重新选择。")
-    # 重置为唯一值
     st.session_state.attack_order = list(range(st.session_state.num_horses))
     st.rerun()
 
 # 创建出场顺序选择器
-attack_order_updated = False
 new_attack_order = []
 
 for i in range(st.session_state.num_horses):
@@ -178,7 +291,6 @@ for i in range(st.session_state.num_horses):
         
         if selected_horse != st.session_state.attack_order[i]:
             st.session_state.attack_order[i] = selected_horse
-            attack_order_updated = True
         
         new_attack_order.append(selected_horse)
 
@@ -187,17 +299,20 @@ st.markdown("### 当前进攻方出场顺序:")
 order_display = []
 for i, horse_idx in enumerate(st.session_state.attack_order):
     horse_name = st.session_state.attack_horse_names[horse_idx]
-    order_display.append(f"第{i+1}场: **{horse_name}**")
+    horse_level = st.session_state.attack_horse_levels[horse_idx] + 1
+    order_display.append(f"第{i+1}场: **{horse_name}** (等级{horse_level})")
 
 st.markdown(" | ".join(order_display))
 
 # 核心算法函数
 def compare_horses(defense_idx, attack_idx):
-    """比较两匹马的实力，数字越小实力越强"""
-    # 数字越小实力越强，所以防守方胜的条件是 defense_idx < attack_idx
-    if defense_idx < attack_idx:
+    """比较两匹马的实力，使用用户设置的实力等级"""
+    defense_level = st.session_state.defense_horse_levels[defense_idx]
+    attack_level = st.session_state.attack_horse_levels[attack_idx]
+    
+    if defense_level < attack_level:  # 等级数字越小实力越强
         return "win"  # 防守方胜
-    elif defense_idx > attack_idx:
+    elif defense_level > attack_level:
         return "lose"  # 进攻方胜
     else:
         return "draw"  # 平局
@@ -287,10 +402,15 @@ if st.session_state.get('calculate_clicked', False):
             
             # 显示防守方出场顺序
             st.markdown("**防守方出场顺序:**")
-            defense_order_names = [st.session_state.defense_horse_names[idx] for idx in defense_order]
+            defense_order_names = []
+            for idx in defense_order:
+                horse_name = st.session_state.defense_horse_names[idx]
+                horse_level = st.session_state.defense_horse_levels[idx] + 1
+                defense_order_names.append(f"{horse_name} (等级{horse_level})")
+            
             order_display = []
-            for i, horse_name in enumerate(defense_order_names):
-                order_display.append(f"第{i+1}场: **{horse_name}**")
+            for i, horse_info in enumerate(defense_order_names):
+                order_display.append(f"第{i+1}场: **{horse_info}**")
             
             st.markdown(" | ".join(order_display))
             
@@ -306,15 +426,19 @@ if st.session_state.get('calculate_clicked', False):
             # 详细对战分析
             st.markdown("#### 📋 详细对战分析")
             
-            # 使用Streamlit原生方式创建表格，而不是HTML
             # 创建表格数据
             table_data = []
             
             for i in range(num_horses):
                 defense_idx = defense_order[i]
                 attack_idx = attack_order[i]
+                
                 defense_horse_name = st.session_state.defense_horse_names[defense_idx]
+                defense_horse_level = st.session_state.defense_horse_levels[defense_idx] + 1
+                
                 attack_horse_name = st.session_state.attack_horse_names[attack_idx]
+                attack_horse_level = st.session_state.attack_horse_levels[attack_idx] + 1
+                
                 result = compare_horses(defense_idx, attack_idx)
                 
                 # 确定结果文本
@@ -329,29 +453,22 @@ if st.session_state.get('calculate_clicked', False):
                     result_color = "🟡"
                 
                 # 实力对比描述
-                defense_horse_num = defense_idx + 1  # 转换为1-based编号
-                attack_horse_num = attack_idx + 1    # 转换为1-based编号
-                
-                if defense_idx < attack_idx:
-                    # 防守方马编号更小，实力更强
-                    comparison = f"防守方更强 ({defense_horse_num}号马 > {attack_horse_num}号马)"
-                elif defense_idx > attack_idx:
-                    # 进攻方马编号更小，实力更强
-                    comparison = f"进攻方更强 ({defense_horse_num}号马 < {attack_horse_num}号马)"
+                if defense_horse_level < attack_horse_level:
+                    comparison = f"防守方更强 (等级{defense_horse_level} > 等级{attack_horse_level})"
+                elif defense_horse_level > attack_horse_level:
+                    comparison = f"进攻方更强 (等级{defense_horse_level} < 等级{attack_horse_level})"
                 else:
-                    comparison = f"实力相等 ({defense_horse_num}号马 = {attack_horse_num}号马)"
+                    comparison = f"实力相等 (等级{defense_horse_level} = 等级{attack_horse_level})"
                 
                 table_data.append({
                     "场次": f"第{i+1}场",
-                    "防守方马匹": defense_horse_name,
-                    "进攻方马匹": attack_horse_name,
+                    "防守方马匹": f"{defense_horse_name} (等级{defense_horse_level})",
+                    "进攻方马匹": f"{attack_horse_name} (等级{attack_horse_level})",
                     "比赛结果": f"{result_color} {result_text}",
                     "实力对比": comparison
                 })
             
             # 使用Streamlit的dataframe显示表格，添加样式
-            import pandas as pd
-            
             df = pd.DataFrame(table_data)
             
             # 设置表格样式
@@ -372,7 +489,9 @@ if st.session_state.get('calculate_clicked', False):
                 with st.expander(f"查看其他 {len(best_strategies)-1} 种最佳策略"):
                     for idx, (order, wins, draws) in enumerate(best_strategies[1:], 2):
                         order_names = [st.session_state.defense_horse_names[i] for i in order]
-                        st.markdown(f"**策略 {idx}:** {order_names} (胜:{wins} 平:{draws})")
+                        order_levels = [st.session_state.defense_horse_levels[i] + 1 for i in order]
+                        order_with_levels = [f"{name}(等级{level})" for name, level in zip(order_names, order_levels)]
+                        st.markdown(f"**策略 {idx}:** {order_with_levels} (胜:{wins} 平:{draws})")
 
 # 初始状态显示说明
 else:
@@ -390,35 +509,39 @@ else:
         
         2. **为马匹命名**
            - 为进攻方和防守方的每匹马命名
-           - 命名规则：数字越小，实力越强 (1号马最强)
         
-        3. **设置进攻方出场顺序**
+        3. **设置双方战力对比**
+           - 为每匹马指定实力等级（1到马匹数量）
+           - **等级数字越小，实力越强**
+           - 等级相同的马匹实力相当
+           - 等级数字可以重复，表示实力相当
+        
+        4. **设置进攻方出场顺序**
            - 为进攻方选择每场比赛的出赛马匹
            - 每匹马只能出场一次
         
-        4. **计算防守策略**
+        5. **计算防守策略**
            - 点击"计算最佳防守策略"按钮
            - 系统会自动计算出防守方的最佳出场顺序
         
-        5. **分析结果**
+        6. **分析结果**
            - 查看防守方的最佳出场顺序
            - 分析每场比赛的胜负情况
            - 查看比赛预测和统计信息
         
         ### 实力规则
         
-        - **数字越小，实力越强** (1号马最强)
-        - 相同数字的马匹实力相等
-        - 防守方马数字 < 进攻方马数字 → 防守方胜
-        - 防守方马数字 > 进攻方马数字 → 进攻方胜
-        - 防守方马数字 = 进攻方马数字 → 平局
+        - **等级数字越小，实力越强** (等级1最强)
+        - 相同等级的马匹实力相等
+        - 防守方马等级 < 进攻方马等级 → 防守方胜
+        - 防守方马等级 > 进攻方马等级 → 进攻方胜
+        - 防守方马等级 = 进攻方马等级 → 平局
         
         **实力对比说明：**
-        - "防守方更强 (2号马 > 3号马)" 表示防守方的2号马比进攻方的3号马实力更强
-        - "进攻方更强 (4号马 < 1号马)" 表示进攻方的1号马比防守方的4号马实力更强
-        - 这里的">"和"<"表示"实力强于"和"实力弱于"
+        - "防守方更强 (等级2 > 等级3)" 表示防守方马的等级2比进攻方马的等级3更高（实力更强）
+        - "进攻方更强 (等级4 < 等级1)" 表示进攻方马的等级1比防守方马的等级4更高（实力更强）
         
-        **现在，请先设置马匹和进攻方顺序，然后点击"计算最佳防守策略"按钮开始！**
+        **现在，请先设置马匹、战力对比和进攻方顺序，然后点击"计算最佳防守策略"按钮开始！**
         """)
 
 # 页脚
