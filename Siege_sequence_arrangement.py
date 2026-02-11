@@ -1,8 +1,6 @@
 import streamlit as st
 from itertools import permutations
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
 
 # 设置页面
 st.set_page_config(
@@ -150,13 +148,15 @@ with col2:
 st.markdown("---")
 st.subheader("📊 双方战力对比")
 
-st.markdown("""
-**使用方法：** 将每匹马拖放到格子中（通过选择格子编号）。格子从上到下编号（1在最上方，实力最强）。
-如果两匹马在同一个格子中，则实力相当。在更上方格子中的马实力更强。
-""")
-
 # 计算总格子数（双方马匹数量总和）
 total_slots = st.session_state.num_horses * 2
+
+st.markdown(f"""
+**使用方法：** 为每匹马选择一个格子位置。总共有{total_slots}个格子，从上到下排列。
+- 格子编号越小，位置越高，实力越强（格子1在最上方，实力最强）
+- 相同格子中的马匹实力相当
+- 在更上方格子中的马实力更强
+""")
 
 # 创建战力对比界面
 st.markdown("### 设置马匹实力位置")
@@ -166,6 +166,10 @@ col_attack_power, col_defense_power = st.columns(2)
 
 with col_attack_power:
     st.markdown("**进攻方马匹位置:**")
+    
+    # 显示格子说明
+    st.markdown(f"**格子位置说明:** 1~{total_slots}号格子，1在最上方")
+    
     for i in range(st.session_state.num_horses):
         col_pos = st.columns([3, 2])
         with col_pos[0]:
@@ -173,7 +177,7 @@ with col_attack_power:
         with col_pos[1]:
             # 格子位置选择器，1在最上方，实力最强
             position = st.selectbox(
-                "格子位置",
+                "选择格子",
                 options=["未分配"] + list(range(1, total_slots + 1)),
                 index=st.session_state.horse_positions['attack'][i] if st.session_state.horse_positions['attack'][i] > 0 else 0,
                 key=f"attack_position_{i}",
@@ -186,13 +190,17 @@ with col_attack_power:
 
 with col_defense_power:
     st.markdown("**防守方马匹位置:**")
+    
+    # 显示格子说明
+    st.markdown(f"**格子位置说明:** 1~{total_slots}号格子，1在最上方")
+    
     for i in range(st.session_state.num_horses):
         col_pos = st.columns([3, 2])
         with col_pos[0]:
             st.markdown(f"{st.session_state.defense_horse_names[i]}")
         with col_pos[1]:
             position = st.selectbox(
-                "格子位置",
+                "选择格子",
                 options=["未分配"] + list(range(1, total_slots + 1)),
                 index=st.session_state.horse_positions['defense'][i] if st.session_state.horse_positions['defense'][i] > 0 else 0,
                 key=f"defense_position_{i}",
@@ -203,162 +211,52 @@ with col_defense_power:
             else:
                 st.session_state.horse_positions['defense'][i] = position
 
-# 可视化战力对比 - 使用Plotly创建格子图
-st.markdown("### 战力对比可视化")
+# 显示简单的实力对比表
+st.markdown("### 实力对比表")
 
-def create_slot_visualization():
-    """创建格子可视化图表"""
-    
-    # 收集数据
-    data = []
-    
-    # 收集进攻方马匹
-    for i in range(st.session_state.num_horses):
-        pos = st.session_state.horse_positions['attack'][i]
-        if pos > 0:
-            data.append({
-                '阵营': '进攻方',
-                '马匹': st.session_state.attack_horse_names[i],
-                '格子位置': pos,
-                '马匹索引': i,
-                '颜色': '#FF6B6B'  # 进攻方红色
-            })
-    
-    # 收集防守方马匹
-    for i in range(st.session_state.num_horses):
-        pos = st.session_state.horse_positions['defense'][i]
-        if pos > 0:
-            data.append({
-                '阵营': '防守方',
-                '马匹': st.session_state.defense_horse_names[i],
-                '格子位置': pos,
-                '马匹索引': i,
-                '颜色': '#4ECDC4'  # 防守方青色
-            })
-    
-    if not data:
-        st.warning("请为马匹分配格子位置")
-        return
-    
-    # 创建图表
-    fig = go.Figure()
-    
-    # 添加格子线
-    for slot in range(1, total_slots + 1):
-        # 格子背景
-        fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref="y",
-            x0=0,
-            x1=1,
-            y0=slot - 0.4,
-            y1=slot + 0.4,
-            fillcolor="rgba(200, 200, 200, 0.2)",
-            line=dict(color="rgba(150, 150, 150, 0.5)", width=1),
-            layer="below"
-        )
-        
-        # 格子编号
-        fig.add_annotation(
-            x=0.02,
-            y=slot,
-            text=f"格子 {slot}",
-            showarrow=False,
-            font=dict(size=10, color="gray"),
-            xanchor="left",
-            yanchor="middle"
-        )
-    
-    # 添加马匹标记
-    for item in data:
-        # 根据阵营确定x位置
-        if item['阵营'] == '进攻方':
-            x_pos = 0.25
-        else:
-            x_pos = 0.75
-        
-        # 添加马匹标记
-        fig.add_trace(go.Scatter(
-            x=[x_pos],
-            y=[item['格子位置']],
-            mode="markers+text",
-            marker=dict(
-                size=30,
-                color=item['颜色'],
-                line=dict(width=2, color="white")
-            ),
-            text=[item['马匹'].replace('进攻方', '').replace('防守方', '')],
-            textposition="middle center",
-            textfont=dict(color="white", size=10, weight="bold"),
-            name=item['阵营'],
-            hovertemplate=f"<b>{item['马匹']}</b><br>阵营: {item['阵营']}<br>格子位置: {item['格子位置']}<extra></extra>"
-        ))
-    
-    # 更新图表布局
-    fig.update_layout(
-        title="战力对比格子图 (位置越高，实力越强)",
-        xaxis=dict(
-            range=[0, 1],
-            showgrid=False,
-            zeroline=False,
-            showticklabels=False,
-            title=None
-        ),
-        yaxis=dict(
-            range=[0.5, total_slots + 0.5],
-            autorange="reversed",  # 反转y轴，使1在最上方
-            showgrid=False,
-            zeroline=False,
-            showticklabels=False,
-            title="实力等级 (↑更强)"
-        ),
-        height=400,
-        showlegend=True,
-        plot_bgcolor="white",
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5
-        ),
-        annotations=[
-            dict(
-                x=0.25,
-                y=total_slots + 0.7,
-                text="进攻方",
-                showarrow=False,
-                font=dict(size=12, color="#FF6B6B", weight="bold"),
-                xanchor="center"
-            ),
-            dict(
-                x=0.75,
-                y=total_slots + 0.7,
-                text="防守方",
-                showarrow=False,
-                font=dict(size=12, color="#4ECDC4", weight="bold"),
-                xanchor="center"
-            )
-        ]
-    )
-    
-    # 添加分隔线
-    fig.add_shape(
-        type="line",
-        xref="paper",
-        yref="paper",
-        x0=0.5,
-        x1=0.5,
-        y0=0,
-        y1=1,
-        line=dict(color="gray", width=1, dash="dash"),
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+# 创建一个简单的文本表格显示实力排名
+attack_positions = {}
+for i in range(st.session_state.num_horses):
+    pos = st.session_state.horse_positions['attack'][i]
+    if pos > 0:
+        if pos not in attack_positions:
+            attack_positions[pos] = []
+        attack_positions[pos].append(st.session_state.attack_horse_names[i])
 
-# 显示可视化
-create_slot_visualization()
+defense_positions = {}
+for i in range(st.session_state.num_horses):
+    pos = st.session_state.horse_positions['defense'][i]
+    if pos > 0:
+        if pos not in defense_positions:
+            defense_positions[pos] = []
+        defense_positions[pos].append(st.session_state.defense_horse_names[i])
+
+# 创建表格显示
+col_table1, col_table2, col_table3 = st.columns([1, 1, 2])
+
+with col_table1:
+    st.markdown("**进攻方实力排名:**")
+    if attack_positions:
+        for pos in sorted(attack_positions.keys()):
+            horses = attack_positions[pos]
+            st.markdown(f"**格子{pos}:** {', '.join(horses)}")
+    else:
+        st.markdown("尚未设置")
+
+with col_table2:
+    st.markdown("**防守方实力排名:**")
+    if defense_positions:
+        for pos in sorted(defense_positions.keys()):
+            horses = defense_positions[pos]
+            st.markdown(f"**格子{pos}:** {', '.join(horses)}")
+    else:
+        st.markdown("尚未设置")
+
+with col_table3:
+    st.markdown("**说明:**")
+    st.markdown("- 格子位置决定了马匹实力")
+    st.markdown("- 数字越小，位置越高，实力越强")
+    st.markdown("- 相同格子中的马匹实力相当")
 
 # 进攻方出场顺序设置
 st.markdown("---")
@@ -414,7 +312,7 @@ for i, horse_idx in enumerate(st.session_state.attack_order):
     horse_name = st.session_state.attack_horse_names[horse_idx]
     # 获取马匹的格子位置
     horse_position = st.session_state.horse_positions['attack'][horse_idx]
-    pos_text = f"(格子{horse_position})" if horse_position > 0 else "(未分配位置)"
+    pos_text = f"(格子{horse_position})" if horse_position > 0 else "(未分配)"
     order_display.append(f"第{i+1}场: **{horse_name}** {pos_text}")
 
 st.markdown(" | ".join(order_display))
@@ -424,12 +322,6 @@ def compare_horses(defense_idx, attack_idx):
     """比较两匹马的实力，根据格子位置"""
     defense_pos = st.session_state.horse_positions['defense'][defense_idx]
     attack_pos = st.session_state.horse_positions['attack'][attack_idx]
-    
-    # 如果有马匹未分配位置，按最弱处理
-    if defense_pos == 0:
-        defense_pos = total_slots + 1  # 未分配视为最弱
-    if attack_pos == 0:
-        attack_pos = total_slots + 1  # 未分配视为最弱
     
     # 格子位置越小（越靠上）实力越强
     if defense_pos < attack_pos:  # 防守方位置更靠上
@@ -638,11 +530,10 @@ else:
            - 为进攻方和防守方的每匹马命名
         
         3. **设置双方战力对比**
-           - 为每匹马选择一个格子位置（1~12）
+           - 为每匹马选择一个格子位置（1~总格子数）
            - **格子编号越小，位置越高，实力越强**
            - 相同格子中的马匹实力相当
            - 在更上方格子中的马实力更强
-           - 使用下拉菜单为每匹马选择格子位置
         
         4. **设置进攻方出场顺序**
            - 为进攻方选择每场比赛的出赛马匹
