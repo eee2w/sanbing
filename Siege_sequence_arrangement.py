@@ -4,7 +4,7 @@ import pandas as pd
 
 # 设置页面
 st.set_page_config(
-    page_title="田忌赛马策略计算器",
+    page_title="田忌赛马策略计算器——1",
     page_icon="🐎",
     layout="wide"
 )
