@@ -306,53 +306,9 @@ if st.session_state.get('calculate_clicked', False):
             # 详细对战分析
             st.markdown("#### 📋 详细对战分析")
             
-            # 创建HTML表格
-            table_html = '''
-            <style>
-            .horse-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 15px 0;
-                font-family: Arial, sans-serif;
-            }
-            .horse-table th {
-                background-color: #4a6fa5;
-                color: white;
-                padding: 12px;
-                text-align: center;
-                font-weight: bold;
-            }
-            .horse-table td {
-                padding: 12px;
-                text-align: center;
-                border-bottom: 1px solid #ddd;
-            }
-            .horse-table tr:hover {
-                background-color: #f5f5f5;
-            }
-            .win-row {
-                background-color: #d4edda;
-            }
-            .lose-row {
-                background-color: #f8d7da;
-            }
-            .draw-row {
-                background-color: #fff3cd;
-            }
-            </style>
-            
-            <table class="horse-table">
-                <thead>
-                    <tr>
-                        <th>场次</th>
-                        <th>防守方马匹</th>
-                        <th>进攻方马匹</th>
-                        <th>比赛结果</th>
-                        <th>实力对比</th>
-                    </tr>
-                </thead>
-                <tbody>
-            '''
+            # 使用Streamlit原生方式创建表格，而不是HTML
+            # 创建表格数据
+            table_data = []
             
             for i in range(num_horses):
                 defense_idx = defense_order[i]
@@ -361,19 +317,18 @@ if st.session_state.get('calculate_clicked', False):
                 attack_horse_name = st.session_state.attack_horse_names[attack_idx]
                 result = compare_horses(defense_idx, attack_idx)
                 
-                # 确定行样式
+                # 确定结果文本
                 if result == "win":
-                    row_class = "win-row"
                     result_text = "防守方胜"
+                    result_color = "🟢"
                 elif result == "lose":
-                    row_class = "lose-row"
                     result_text = "进攻方胜"
+                    result_color = "🔴"
                 else:
-                    row_class = "draw-row"
                     result_text = "平局"
+                    result_color = "🟡"
                 
                 # 实力对比描述
-                # 注意：数字越小实力越强
                 defense_horse_num = defense_idx + 1  # 转换为1-based编号
                 attack_horse_num = attack_idx + 1    # 转换为1-based编号
                 
@@ -386,18 +341,31 @@ if st.session_state.get('calculate_clicked', False):
                 else:
                     comparison = f"实力相等 ({defense_horse_num}号马 = {attack_horse_num}号马)"
                 
-                table_html += f'''
-                <tr class="{row_class}">
-                    <td>第{i+1}场</td>
-                    <td><strong>{defense_horse_name}</strong></td>
-                    <td><strong>{attack_horse_name}</strong></td>
-                    <td><strong>{result_text}</strong></td>
-                    <td>{comparison}</td>
-                </tr>
-                '''
+                table_data.append({
+                    "场次": f"第{i+1}场",
+                    "防守方马匹": defense_horse_name,
+                    "进攻方马匹": attack_horse_name,
+                    "比赛结果": f"{result_color} {result_text}",
+                    "实力对比": comparison
+                })
             
-            table_html += "</tbody></table>"
-            st.markdown(table_html, unsafe_allow_html=True)
+            # 使用Streamlit的dataframe显示表格，添加样式
+            import pandas as pd
+            
+            df = pd.DataFrame(table_data)
+            
+            # 设置表格样式
+            def color_rows(row):
+                if "防守方胜" in row["比赛结果"]:
+                    return ['background-color: #d4edda'] * len(row)
+                elif "进攻方胜" in row["比赛结果"]:
+                    return ['background-color: #f8d7da'] * len(row)
+                else:
+                    return ['background-color: #fff3cd'] * len(row)
+            
+            # 应用样式并显示表格
+            styled_df = df.style.apply(color_rows, axis=1)
+            st.dataframe(styled_df, use_container_width=True, hide_index=True)
             
             # 显示其他最佳策略
             if len(best_strategies) > 1:
