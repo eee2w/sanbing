@@ -160,14 +160,6 @@ st.subheader("📊 双方战力对比")
 # 计算总格子数（双方马匹数量总和）
 total_slots = st.session_state.num_horses * 2
 
-st.markdown(f"""
-**使用方法：** 为每个格子选择马匹。总共有{total_slots}个格子，从上到下排列。
-- 格子位置越高（编号越小），实力越强（格子1在最上方，实力最强）
-- 相同格子中的马匹实力相当
-- 可以留空不选马匹
-- 每匹马只能出现在一个格子中
-""")
-
 # 创建战力对比界面
 st.markdown("### 设置马匹实力位置")
 
@@ -176,9 +168,6 @@ col_attack_power, col_defense_power = st.columns(2)
 
 with col_attack_power:
     st.markdown("**进攻方格子选择:**")
-    
-    # 显示格子说明
-    st.markdown(f"**格子位置:** 1~{total_slots}号格子，1在最上方")
     
     # 获取进攻方已被选择的马匹
     attack_selected_horses = [idx for idx in st.session_state.slot_selections['attack'] if idx is not None]
@@ -236,9 +225,6 @@ with col_attack_power:
 with col_defense_power:
     st.markdown("**防守方格子选择:**")
     
-    # 显示格子说明
-    st.markdown(f"**格子位置:** 1~{total_slots}号格子，1在最上方")
-    
     # 获取防守方已被选择的马匹
     defense_selected_horses = [idx for idx in st.session_state.slot_selections['defense'] if idx is not None]
     
@@ -291,54 +277,6 @@ with col_defense_power:
                 # 更新当前格子的选择
                 st.session_state.slot_selections['defense'][slot_idx] = new_selection
                 st.rerun()
-
-# 显示简单的实力对比表
-st.markdown("### 实力对比表")
-
-# 创建一个简单的文本表格显示实力排名
-attack_positions = {}
-for slot_idx in range(total_slots):
-    horse_idx = st.session_state.slot_selections['attack'][slot_idx]
-    if horse_idx is not None:
-        if slot_idx+1 not in attack_positions:
-            attack_positions[slot_idx+1] = []
-        attack_positions[slot_idx+1].append(st.session_state.attack_horse_names[horse_idx])
-
-defense_positions = {}
-for slot_idx in range(total_slots):
-    horse_idx = st.session_state.slot_selections['defense'][slot_idx]
-    if horse_idx is not None:
-        if slot_idx+1 not in defense_positions:
-            defense_positions[slot_idx+1] = []
-        defense_positions[slot_idx+1].append(st.session_state.defense_horse_names[horse_idx])
-
-# 创建表格显示
-col_table1, col_table2, col_table3 = st.columns([1, 1, 2])
-
-with col_table1:
-    st.markdown("**进攻方实力排名:**")
-    if attack_positions:
-        for pos in sorted(attack_positions.keys()):
-            horses = attack_positions[pos]
-            st.markdown(f"**格子{pos}:** {', '.join(horses)}")
-    else:
-        st.markdown("尚未设置")
-
-with col_table2:
-    st.markdown("**防守方实力排名:**")
-    if defense_positions:
-        for pos in sorted(defense_positions.keys()):
-            horses = defense_positions[pos]
-            st.markdown(f"**格子{pos}:** {', '.join(horses)}")
-    else:
-        st.markdown("尚未设置")
-
-with col_table3:
-    st.markdown("**说明:**")
-    st.markdown("- 格子位置决定了马匹实力")
-    st.markdown("- 数字越小，位置越高，实力越强")
-    st.markdown("- 相同格子中的马匹实力相当")
-    st.markdown("- 格子可以留空")
 
 # 进攻方出场顺序设置
 st.markdown("---")
