@@ -42,34 +42,7 @@ col1, col2 = st.columns(2)
 with col1:
     st.subheader("🏇 进攻方设置")
     
-    # 马匹数量控制
-    col1_1, col1_2 = st.columns([3, 1])
-    
-    with col1_1:
-        st.markdown("**马匹数量:**")
-    
-    with col1_2:
-        # 添加马匹按钮
-        if st.button("➕ 添加马匹", key="add_attack"):
-            if st.session_state.num_horses < 6:
-                st.session_state.num_horses += 1
-                st.session_state.attack_horse_names.append(f"进攻方马{st.session_state.num_horses}")
-                st.session_state.defense_horse_names.append(f"防守方马{st.session_state.num_horses}")
-                # 初始化进攻方顺序
-                st.session_state.attack_order = list(range(st.session_state.num_horses))
-                # 重新初始化格子选择（增加一个None）
-                total_slots = st.session_state.num_horses * 2
-                st.session_state.slot_selections = {
-                    'attack': [None] * total_slots,
-                    'defense': [None] * total_slots
-                }
-                st.rerun()
-            else:
-                st.warning("最多只能有6匹马！")
-    
     # 为每匹马命名
-    st.markdown("**为每匹马命名:**")
-    
     for i in range(st.session_state.num_horses):
         col_name = st.columns([1, 4, 1])
         
@@ -104,26 +77,17 @@ with col1:
                     st.rerun()
             else:
                 st.empty()
-
-# 右侧：防守方设置
-with col2:
-    st.subheader("🛡️ 防守方设置")
     
-    # 马匹数量显示
-    col2_1, col2_2 = st.columns([3, 1])
-    
-    with col2_1:
-        st.markdown("**马匹数量:**")
-    
-    with col2_2:
-        # 删除马匹按钮
-        if st.button("➖ 删除马匹", key="remove_defense"):
-            if st.session_state.num_horses > 2:
-                st.session_state.num_horses -= 1
-                st.session_state.attack_horse_names.pop()
-                st.session_state.defense_horse_names.pop()
-                # 更新进攻方顺序
-                st.session_state.attack_order = [x for x in st.session_state.attack_order if x < st.session_state.num_horses]
+    # 添加马匹按钮放在下面
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        if st.button("添加", key="add_attack"):
+            if st.session_state.num_horses < 6:
+                st.session_state.num_horses += 1
+                st.session_state.attack_horse_names.append(f"进攻方马{st.session_state.num_horses}")
+                st.session_state.defense_horse_names.append(f"防守方马{st.session_state.num_horses}")
+                # 初始化进攻方顺序
+                st.session_state.attack_order = list(range(st.session_state.num_horses))
                 # 重新初始化格子选择
                 total_slots = st.session_state.num_horses * 2
                 st.session_state.slot_selections = {
@@ -132,11 +96,13 @@ with col2:
                 }
                 st.rerun()
             else:
-                st.warning("至少需要2匹马！")
+                st.warning("最多只能有6匹马！")
+
+# 右侧：防守方设置
+with col2:
+    st.subheader("🛡️ 防守方设置")
     
     # 为防守方马匹命名
-    st.markdown("**为每匹马命名:**")
-    
     for i in range(st.session_state.num_horses):
         col_name = st.columns([1, 4])
         
@@ -152,6 +118,24 @@ with col2:
             )
             if new_name != st.session_state.defense_horse_names[i]:
                 st.session_state.defense_horse_names[i] = new_name
+    
+    # 删除马匹按钮放在下面
+    if st.button("删除", key="remove_defense"):
+        if st.session_state.num_horses > 2:
+            st.session_state.num_horses -= 1
+            st.session_state.attack_horse_names.pop()
+            st.session_state.defense_horse_names.pop()
+            # 更新进攻方顺序
+            st.session_state.attack_order = [x for x in st.session_state.attack_order if x < st.session_state.num_horses]
+            # 重新初始化格子选择
+            total_slots = st.session_state.num_horses * 2
+            st.session_state.slot_selections = {
+                'attack': [None] * total_slots,
+                'defense': [None] * total_slots
+            }
+            st.rerun()
+        else:
+            st.warning("至少需要2匹马！")
 
 # 双方战力对比
 st.markdown("---")
@@ -161,128 +145,109 @@ st.subheader("📊 双方战力对比")
 total_slots = st.session_state.num_horses * 2
 
 # 创建战力对比界面
-st.markdown("### 设置马匹实力位置")
-
-# 创建两列显示进攻方和防守方
 col_attack_power, col_defense_power = st.columns(2)
 
 with col_attack_power:
-    st.markdown("**进攻方格子选择:**")
-    
     # 获取进攻方已被选择的马匹
     attack_selected_horses = [idx for idx in st.session_state.slot_selections['attack'] if idx is not None]
     
     for slot_idx in range(total_slots):
-        col_slot = st.columns([2, 3])
-        with col_slot[0]:
-            st.markdown(f"**格子{slot_idx+1}:**")
+        # 可选的马匹：所有进攻方马匹，但排除已被其他格子选择的马匹
+        # 但当前格子已选的马匹应该包含在内
+        current_selection = st.session_state.slot_selections['attack'][slot_idx]
+        available_options = ["空"]
         
-        with col_slot[1]:
-            # 可选的马匹：所有进攻方马匹，但排除已被其他格子选择的马匹
-            # 但当前格子已选的马匹应该包含在内
-            current_selection = st.session_state.slot_selections['attack'][slot_idx]
-            available_options = ["空"]
-            
-            for horse_idx in range(st.session_state.num_horses):
-                horse_name = st.session_state.attack_horse_names[horse_idx]
-                # 如果这匹马未被其他格子选择，或者就是当前格子已选的马匹，则可用
-                if horse_idx not in attack_selected_horses or horse_idx == current_selection:
-                    available_options.append((horse_idx, horse_name))
-            
-            # 创建选择框
-            if current_selection is None:
-                default_index = 0
-            else:
-                # 找到当前选择在选项中的索引
-                default_index = 0
-                for i, option in enumerate(available_options):
-                    if option != "空" and option[0] == current_selection:
-                        default_index = i
-                        break
-            
-            # 显示选择框
-            selected_option = st.selectbox(
-                f"选择格子{slot_idx+1}的马匹",
-                options=available_options,
-                index=default_index,
-                format_func=lambda x: x[1] if x != "空" else "空",
-                key=f"attack_slot_{slot_idx}",
-                label_visibility="collapsed"
-            )
-            
-            # 更新选择
-            if selected_option == "空":
-                new_selection = None
-            else:
-                new_selection = selected_option[0]
-            
-            # 检查选择是否改变
-            if new_selection != st.session_state.slot_selections['attack'][slot_idx]:
-                # 更新当前格子的选择
-                st.session_state.slot_selections['attack'][slot_idx] = new_selection
-                st.rerun()
+        for horse_idx in range(st.session_state.num_horses):
+            horse_name = st.session_state.attack_horse_names[horse_idx]
+            # 如果这匹马未被其他格子选择，或者就是当前格子已选的马匹，则可用
+            if horse_idx not in attack_selected_horses or horse_idx == current_selection:
+                available_options.append((horse_idx, horse_name))
+        
+        # 创建选择框
+        if current_selection is None:
+            default_index = 0
+        else:
+            # 找到当前选择在选项中的索引
+            default_index = 0
+            for i, option in enumerate(available_options):
+                if option != "空" and option[0] == current_selection:
+                    default_index = i
+                    break
+        
+        # 显示选择框
+        selected_option = st.selectbox(
+            f"格子{slot_idx+1}",
+            options=available_options,
+            index=default_index,
+            format_func=lambda x: x[1] if x != "空" else "空",
+            key=f"attack_slot_{slot_idx}",
+            label_visibility="collapsed"
+        )
+        
+        # 更新选择
+        if selected_option == "空":
+            new_selection = None
+        else:
+            new_selection = selected_option[0]
+        
+        # 检查选择是否改变
+        if new_selection != st.session_state.slot_selections['attack'][slot_idx]:
+            # 更新当前格子的选择
+            st.session_state.slot_selections['attack'][slot_idx] = new_selection
+            st.rerun()
 
 with col_defense_power:
-    st.markdown("**防守方格子选择:**")
-    
     # 获取防守方已被选择的马匹
     defense_selected_horses = [idx for idx in st.session_state.slot_selections['defense'] if idx is not None]
     
     for slot_idx in range(total_slots):
-        col_slot = st.columns([2, 3])
-        with col_slot[0]:
-            st.markdown(f"**格子{slot_idx+1}:**")
+        # 可选的马匹：所有防守方马匹，但排除已被其他格子选择的马匹
+        # 但当前格子已选的马匹应该包含在内
+        current_selection = st.session_state.slot_selections['defense'][slot_idx]
+        available_options = ["空"]
         
-        with col_slot[1]:
-            # 可选的马匹：所有防守方马匹，但排除已被其他格子选择的马匹
-            # 但当前格子已选的马匹应该包含在内
-            current_selection = st.session_state.slot_selections['defense'][slot_idx]
-            available_options = ["空"]
-            
-            for horse_idx in range(st.session_state.num_horses):
-                horse_name = st.session_state.defense_horse_names[horse_idx]
-                # 如果这匹马未被其他格子选择，或者就是当前格子已选的马匹，则可用
-                if horse_idx not in defense_selected_horses or horse_idx == current_selection:
-                    available_options.append((horse_idx, horse_name))
-            
-            # 创建选择框
-            if current_selection is None:
-                default_index = 0
-            else:
-                # 找到当前选择在选项中的索引
-                default_index = 0
-                for i, option in enumerate(available_options):
-                    if option != "空" and option[0] == current_selection:
-                        default_index = i
-                        break
-            
-            # 显示选择框
-            selected_option = st.selectbox(
-                f"选择格子{slot_idx+1}的马匹",
-                options=available_options,
-                index=default_index,
-                format_func=lambda x: x[1] if x != "空" else "空",
-                key=f"defense_slot_{slot_idx}",
-                label_visibility="collapsed"
-            )
-            
-            # 更新选择
-            if selected_option == "空":
-                new_selection = None
-            else:
-                new_selection = selected_option[0]
-            
-            # 检查选择是否改变
-            if new_selection != st.session_state.slot_selections['defense'][slot_idx]:
-                # 更新当前格子的选择
-                st.session_state.slot_selections['defense'][slot_idx] = new_selection
-                st.rerun()
+        for horse_idx in range(st.session_state.num_horses):
+            horse_name = st.session_state.defense_horse_names[horse_idx]
+            # 如果这匹马未被其他格子选择，或者就是当前格子已选的马匹，则可用
+            if horse_idx not in defense_selected_horses or horse_idx == current_selection:
+                available_options.append((horse_idx, horse_name))
+        
+        # 创建选择框
+        if current_selection is None:
+            default_index = 0
+        else:
+            # 找到当前选择在选项中的索引
+            default_index = 0
+            for i, option in enumerate(available_options):
+                if option != "空" and option[0] == current_selection:
+                    default_index = i
+                    break
+        
+        # 显示选择框
+        selected_option = st.selectbox(
+            f"格子{slot_idx+1}",
+            options=available_options,
+            index=default_index,
+            format_func=lambda x: x[1] if x != "空" else "空",
+            key=f"defense_slot_{slot_idx}",
+            label_visibility="collapsed"
+        )
+        
+        # 更新选择
+        if selected_option == "空":
+            new_selection = None
+        else:
+            new_selection = selected_option[0]
+        
+        # 检查选择是否改变
+        if new_selection != st.session_state.slot_selections['defense'][slot_idx]:
+            # 更新当前格子的选择
+            st.session_state.slot_selections['defense'][slot_idx] = new_selection
+            st.rerun()
 
 # 进攻方出场顺序设置
 st.markdown("---")
 st.subheader("🎯 进攻方出场顺序设置")
-
-st.markdown("请为进攻方选择每场比赛的出赛马匹（每匹马只能使用一次）：")
 
 # 创建进攻方出场顺序选择
 remaining_horses = list(range(st.session_state.num_horses))
@@ -324,23 +289,6 @@ for i in range(st.session_state.num_horses):
             st.session_state.attack_order[i] = selected_horse
         
         new_attack_order.append(selected_horse)
-
-# 显示进攻方出场顺序
-st.markdown("### 当前进攻方出场顺序:")
-order_display = []
-for i, horse_idx in enumerate(st.session_state.attack_order):
-    horse_name = st.session_state.attack_horse_names[horse_idx]
-    # 获取马匹的格子位置
-    horse_position = None
-    for slot_idx in range(total_slots):
-        if st.session_state.slot_selections['attack'][slot_idx] == horse_idx:
-            horse_position = slot_idx + 1
-            break
-    
-    pos_text = f"(格子{horse_position})" if horse_position else "(未分配)"
-    order_display.append(f"第{i+1}场: **{horse_name}** {pos_text}")
-
-st.markdown(" | ".join(order_display))
 
 # 核心算法函数
 def get_horse_position(side, horse_idx):
@@ -557,59 +505,6 @@ if st.session_state.get('calculate_clicked', False):
                         order_positions = [get_horse_position('defense', i) for i in order]
                         order_info = [f"{name}(格子{pos})" for name, pos in zip(order_names, order_positions)]
                         st.markdown(f"**策略 {idx}:** {order_info} (胜:{wins} 平:{draws})")
-
-# 初始状态显示说明
-else:
-    st.markdown("---")
-    with st.expander("ℹ️ 使用说明", expanded=True):
-        st.markdown("""
-        ### 游戏规则
-        
-        田忌赛马是中国古代著名的策略故事。田忌通过调整马匹的出场顺序，以弱胜强战胜了齐威王。
-        
-        ### 使用步骤
-        
-        1. **设置马匹数量** (通过"添加马匹"和"删除马匹"按钮)
-           - 最少2匹，最多6匹马
-        
-        2. **为马匹命名**
-           - 为进攻方和防守方的每匹马命名
-        
-        3. **设置双方战力对比**
-           - 为每个格子选择马匹
-           - 总共有2N个格子（N为马匹数量）
-           - **格子编号越小，位置越高，实力越强**
-           - 相同格子中的马匹实力相当
-           - 格子可以留空
-           - 每匹马只能出现在一个格子中
-        
-        4. **设置进攻方出场顺序**
-           - 为进攻方选择每场比赛的出赛马匹
-           - 每匹马只能出场一次
-        
-        5. **计算防守策略**
-           - 点击"计算最佳防守策略"按钮
-           - 系统会自动计算出防守方的最佳出场顺序
-        
-        6. **分析结果**
-           - 查看防守方的最佳出场顺序
-           - 分析每场比赛的胜负情况
-           - 查看比赛预测和统计信息
-        
-        ### 实力规则
-        
-        - **格子位置越靠上（编号越小），实力越强**
-        - 相同格子中的马匹实力相等（会形成平局）
-        - 防守方马格子位置 < 进攻方马格子位置 → 防守方胜
-        - 防守方马格子位置 > 进攻方马格子位置 → 进攻方胜
-        - 防守方马格子位置 = 进攻方马格子位置 → 平局
-        
-        **实力对比说明：**
-        - "防守方更强 (格子2在上方)" 表示防守方马在格子2，进攻方马在更下方的格子
-        - "进攻方更强 (格子1在上方)" 表示进攻方马在格子1，防守方马在更下方的格子
-        
-        **现在，请先设置马匹、战力对比和进攻方顺序，然后点击"计算最佳防守策略"按钮开始！**
-        """)
 
 # 页脚
 st.markdown("---")
