@@ -59,6 +59,7 @@ with col1:
         col_name = st.columns([1, 4, 1])
         
         with col_name[0]:
+            # 显示马匹编号，1号最强
             st.markdown(f"**{i+1}号马:**")
         
         with col_name[1]:
@@ -116,6 +117,7 @@ with col2:
         col_name = st.columns([1, 4])
         
         with col_name[0]:
+            # 显示马匹编号，1号最强
             st.markdown(f"**{i+1}号马:**")
         
         with col_name[1]:
@@ -370,13 +372,19 @@ if st.session_state.get('calculate_clicked', False):
                     row_class = "draw-row"
                     result_text = "平局"
                 
-                # 实力对比描述（数字越小实力越强）
+                # 实力对比描述
+                # 注意：数字越小实力越强
+                defense_horse_num = defense_idx + 1  # 转换为1-based编号
+                attack_horse_num = attack_idx + 1    # 转换为1-based编号
+                
                 if defense_idx < attack_idx:
-                    comparison = f"防守方更强 ({defense_idx+1}号马 > {attack_idx+1}号马)"
+                    # 防守方马编号更小，实力更强
+                    comparison = f"防守方更强 ({defense_horse_num}号马 > {attack_horse_num}号马)"
                 elif defense_idx > attack_idx:
-                    comparison = f"进攻方更强 ({defense_idx+1}号马 < {attack_idx+1}号马)"
+                    # 进攻方马编号更小，实力更强
+                    comparison = f"进攻方更强 ({defense_horse_num}号马 < {attack_horse_num}号马)"
                 else:
-                    comparison = f"实力相等 ({defense_idx+1}号马 = {attack_idx+1}号马)"
+                    comparison = f"实力相等 ({defense_horse_num}号马 = {attack_horse_num}号马)"
                 
                 table_html += f'''
                 <tr class="{row_class}">
@@ -431,11 +439,16 @@ else:
         
         ### 实力规则
         
-        - 数字越小，实力越强 (1号马最强)
+        - **数字越小，实力越强** (1号马最强)
         - 相同数字的马匹实力相等
         - 防守方马数字 < 进攻方马数字 → 防守方胜
         - 防守方马数字 > 进攻方马数字 → 进攻方胜
         - 防守方马数字 = 进攻方马数字 → 平局
+        
+        **实力对比说明：**
+        - "防守方更强 (2号马 > 3号马)" 表示防守方的2号马比进攻方的3号马实力更强
+        - "进攻方更强 (4号马 < 1号马)" 表示进攻方的1号马比防守方的4号马实力更强
+        - 这里的">"和"<"表示"实力强于"和"实力弱于"
         
         **现在，请先设置马匹和进攻方顺序，然后点击"计算最佳防守策略"按钮开始！**
         """)
