@@ -66,7 +66,7 @@ def on_slot_change(side: str, slot_idx: int):
     if 'calculate_clicked' in st.session_state:
         del st.session_state.calculate_clicked
 
-# ---------- 左侧：进攻方设置（移除垃圾桶按钮）----------
+# ---------- 左侧：进攻方设置（紧凑按钮）----------
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("🐓 进攻方设置")
@@ -88,8 +88,8 @@ with col1:
                 if 'calculate_clicked' in st.session_state:
                     del st.session_state.calculate_clicked
 
-    # 添加 / 删除按钮（仅保留下方）
-    col_btn1, col_btn2 = st.columns(2)
+    # ---------- 添加/删除按钮（紧凑并排）----------
+    col_btn1, col_btn2, _ = st.columns([0.2, 0.2, 0.6])  # 两个小列放按钮，剩余空间留白
     with col_btn1:
         if st.button("添加", key="add_attack"):
             if st.session_state.num_horses < 6:
@@ -193,9 +193,6 @@ with col_defense_power:
             on_change=lambda s='defense', idx=slot_idx: on_slot_change(s, idx),
             label_visibility="collapsed"
         )
-
-
-    
 
 # ---------- 进攻方出场顺序设置 ----------
 st.markdown("---")
@@ -357,9 +354,7 @@ if st.session_state.get('calculate_clicked', False):
                 d_idx = defense_order[i]
                 a_idx = attack_order[i]
                 d_name = get_defense_name(d_idx)      # 只显示名称
-                d_pos = get_horse_position('defense', d_idx)
                 a_name = get_attack_name(a_idx)       # 只显示名称
-                a_pos = get_horse_position('attack', a_idx)
                 result = compare_horses(d_idx, a_idx)
 
                 if result == "win":
@@ -372,19 +367,11 @@ if st.session_state.get('calculate_clicked', False):
                     result_text = "平局"
                     result_color = "🟡"
 
-                if d_pos < a_pos:
-                    comparison = f"防守方更强 (格子{d_pos}在上方)"
-                elif d_pos > a_pos:
-                    comparison = f"进攻方更强 (格子{a_pos}在上方)"
-                else:
-                    comparison = f"实力相等 (同在格子{d_pos})"
-
                 table_data.append({
                     "场次": f"第{i+1}场",
-                    "防守方马匹": d_name,           # 已不含格子信息
-                    "进攻方马匹": a_name,           # 已不含格子信息
-                    "比赛结果": f"{result_color} {result_text}",
-                    "实力对比": comparison
+                    "防守方马匹": d_name,
+                    "进攻方马匹": a_name,
+                    "比赛结果": f"{result_color} {result_text}"
                 })
 
             df = pd.DataFrame(table_data)
