@@ -217,7 +217,7 @@ apps = [
         "name": "守城车头卡秒顺序计算器",
         "url": "https://sanbing-n35z7a8jpimpe3q5xkdyyc.streamlit.app/",
         "description": "根据对方车头攻城顺序计算己方防守车头卡秒顺序（建议电脑端使用）",
-        "icon": "🛡",
+        "icon": "🛡️",
         "status": "online"
     }
 ]
