@@ -4,12 +4,12 @@ import pandas as pd
 
 # ---------- 页面配置 ----------
 st.set_page_config(
-    page_title="田忌赛马策略计算器",
+    page_title="守城车头卡秒顺序计算器",
     page_icon="🐎",
     layout="wide"
 )
 
-st.title("🐎 田忌赛马策略计算器")
+st.title("🐎 守城车头卡秒顺序计算器")
 st.markdown("---")
 
 # ---------- 辅助函数：获取默认显示名称 ----------
@@ -69,7 +69,7 @@ def on_slot_change(side: str, slot_idx: int):
 # ---------- 左侧：进攻方设置（移除垃圾桶按钮）----------
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("🏇 进攻方设置")
+    st.subheader("🐓 进攻方设置")
     for i in range(st.session_state.num_horses):
         cols = st.columns([1, 4])          # 只保留两列：标签 + 输入框
         with cols[0]:
@@ -155,6 +155,7 @@ with col2:
 # ---------- 双方战力对比 ----------
 st.markdown("---")
 st.subheader("📊 双方战力对比")
+st.markdown("越靠上面战力越强，左边进攻右边防守")  
 
 total_slots = st.session_state.num_horses * 2
 available_options = ["空"] + list(range(st.session_state.num_horses))
@@ -193,9 +194,8 @@ with col_defense_power:
             label_visibility="collapsed"
         )
 
-# ---------- 📘 使用说明预留位置 ----------
-with st.expander("📘 使用说明（点击展开）"):
-    st.markdown("")  # 此处留空，供您自行填写使用说明
+
+    
 
 # ---------- 进攻方出场顺序设置 ----------
 st.markdown("---")
