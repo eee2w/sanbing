@@ -1,7 +1,6 @@
 import streamlit as st
 from itertools import permutations
 import pandas as pd
-import functools
 
 # ---------- 页面配置 ----------
 st.set_page_config(
@@ -14,22 +13,52 @@ st.title("🐎 田忌赛马策略计算器")
 st.markdown("---")
 
 # ---------- 初始化会话状态 ----------
-if 'num_horses' not in st.session_state:
-    st.session_state.num_horses = 3
-if 'attack_horse_names' not in st.session_state:
-    st.session_state.attack_horse_names = ["进攻方上马", "进攻方中马", "进攻方下马"]
-if 'defense_horse_names' not in st.session_state:
-    st.session_state.defense_horse_names = ["防守方上马", "防守方中马", "防守方下马"]
-if 'attack_order' not in st.session_state:
-    st.session_state.attack_order = [0, 1, 2]
+def init_default_state():
+    """设置或重置所有自定义变量为默认值（3匹马）"""
+    if 'num_horses' not in st.session_state:
+        st.session_state.num_horses = 3
+    if 'attack_horse_names' not in st.session_state:
+        st.session_state.attack_horse_names = ["进攻方上马", "进攻方中马", "进攻方下马"]
+    if 'defense_horse_names' not in st.session_state:
+        st.session_state.defense_horse_names = ["防守方上马", "防守方中马", "防守方下马"]
+    if 'attack_order' not in st.session_state:
+        st.session_state.attack_order = [0, 1, 2]
+    
+    total_slots = st.session_state.num_horses * 2
+    if 'slot_selections' not in st.session_state:
+        st.session_state.slot_selections = {
+            'attack': [None] * total_slots,
+            'defense': [None] * total_slots
+        }
 
-# 格子选择状态：维护每匹马被分配到的格子（None 表示未分配）
-total_slots_init = st.session_state.num_horses * 2
-if 'slot_selections' not in st.session_state:
+init_default_state()
+
+# ---------- 重置函数（优雅封装）----------
+def reset_all_settings():
+    """重置所有用户设置为初始状态（3匹马，默认名称，全部清空）"""
+    # 1. 重置马匹数量
+    st.session_state.num_horses = 3
+    # 2. 重置马匹名称
+    st.session_state.attack_horse_names = ["进攻方上马", "进攻方中马", "进攻方下马"]
+    st.session_state.defense_horse_names = ["防守方上马", "防守方中马", "防守方下马"]
+    # 3. 重置出场顺序
+    st.session_state.attack_order = [0, 1, 2]
+    # 4. 重置格子分配
+    total_slots = st.session_state.num_horses * 2
     st.session_state.slot_selections = {
-        'attack': [None] * total_slots_init,
-        'defense': [None] * total_slots_init
+        'attack': [None] * total_slots,
+        'defense': [None] * total_slots
     }
+    # 5. 清除计算结果标记
+    if 'calculate_clicked' in st.session_state:
+        del st.session_state.calculate_clicked
+    
+    # 6. 强制同步所有 widget 的值（避免残留显示）
+    for i in range(total_slots):
+        st.session_state[f"attack_slot_{i}"] = "空"
+        st.session_state[f"defense_slot_{i}"] = "空"
+    for i in range(3):
+        st.session_state[f"attack_order_{i}"] = i
 
 # ---------- 回调函数：格子选择变化时的冲突处理 ----------
 def on_slot_change(side: str, slot_idx: int):
@@ -40,28 +69,26 @@ def on_slot_change(side: str, slot_idx: int):
     - 清除之前计算结果
     """
     widget_key = f"{side}_slot_{slot_idx}"
-    new_val = st.session_state[widget_key]          # 新选中的值："空" 或 整数索引
+    new_val = st.session_state[widget_key]
     total_slots = st.session_state.num_horses * 2
 
-    # 1. 将新值转换为内部存储格式（None 表示空，整数表示马匹索引）
     internal_val = None if new_val == "空" else new_val
 
-    # 2. 如果新值是非空，检查并清除其他格子中的相同马匹
+    # 如果新值是非空，检查并清除其他格子中的相同马匹
     if internal_val is not None:
         for other_idx in range(total_slots):
             if other_idx == slot_idx:
                 continue
             other_widget_key = f"{side}_slot_{other_idx}"
             other_val = st.session_state.get(other_widget_key)
-            # 如果其他格子的 widget 值等于当前选中的马匹索引，则将其清空
             if other_val == internal_val:
                 st.session_state[other_widget_key] = "空"
                 st.session_state.slot_selections[side][other_idx] = None
 
-    # 3. 更新当前格子的 slot_selections
+    # 更新当前格子的 slot_selections
     st.session_state.slot_selections[side][slot_idx] = internal_val
 
-    # 4. 清除已计算的结果标记
+    # 清除已计算的结果标记
     if 'calculate_clicked' in st.session_state:
         del st.session_state.calculate_clicked
 
@@ -96,6 +123,10 @@ with col1:
                         'attack': [None] * total_slots,
                         'defense': [None] * total_slots
                     }
+                    # 同步 widget 值（新格子全部为空）
+                    for j in range(total_slots):
+                        st.session_state[f"attack_slot_{j}"] = "空"
+                        st.session_state[f"defense_slot_{j}"] = "空"
                     if 'calculate_clicked' in st.session_state:
                         del st.session_state.calculate_clicked
                     st.rerun()
@@ -115,6 +146,9 @@ with col1:
                     'attack': [None] * total_slots,
                     'defense': [None] * total_slots
                 }
+                for j in range(total_slots):
+                    st.session_state[f"attack_slot_{j}"] = "空"
+                    st.session_state[f"defense_slot_{j}"] = "空"
                 if 'calculate_clicked' in st.session_state:
                     del st.session_state.calculate_clicked
                 st.rerun()
@@ -151,13 +185,16 @@ with col2:
                 'attack': [None] * total_slots,
                 'defense': [None] * total_slots
             }
+            for j in range(total_slots):
+                st.session_state[f"attack_slot_{j}"] = "空"
+                st.session_state[f"defense_slot_{j}"] = "空"
             if 'calculate_clicked' in st.session_state:
                 del st.session_state.calculate_clicked
             st.rerun()
         else:
             st.warning("至少需要2匹马！")
 
-# ---------- 双方战力对比（核心改进点）----------
+# ---------- 双方战力对比（使用 on_change 回调）----------
 st.markdown("---")
 st.subheader("📊 双方战力对比")
 
@@ -169,7 +206,6 @@ col_attack_power, col_defense_power = st.columns(2)
 # ----- 进攻方格子选择 -----
 with col_attack_power:
     for slot_idx in range(total_slots):
-        # 确定当前格子的默认选中项
         current = st.session_state.slot_selections['attack'][slot_idx]
         default_index = 0 if current is None else current + 1
 
@@ -227,7 +263,7 @@ for i in range(st.session_state.num_horses):
                 del st.session_state.calculate_clicked
         new_attack_order.append(selected_horse)
 
-# 检查是否有重复选择（防御性代码）
+# 检查重复（防御性）
 if len(set(st.session_state.attack_order)) != len(st.session_state.attack_order):
     st.error("每匹马只能出场一次！请重新选择。")
     st.session_state.attack_order = list(range(st.session_state.num_horses))
@@ -248,18 +284,17 @@ def compare_horses(defense_idx, attack_idx):
     defense_pos = get_horse_position('defense', defense_idx)
     attack_pos = get_horse_position('attack', attack_idx)
 
-    # 未分配格子的马匹按最弱处理（位置视为最末）
     if defense_pos is None:
         defense_pos = total_slots + 1
     if attack_pos is None:
         attack_pos = total_slots + 1
 
     if defense_pos < attack_pos:
-        return "win"      # 防守方胜
+        return "win"
     elif defense_pos > attack_pos:
-        return "lose"     # 进攻方胜
+        return "lose"
     else:
-        return "draw"     # 平局
+        return "draw"
 
 def find_best_strategies(attack_order, num_horses):
     """暴力搜索所有防守顺序，找出最优策略"""
@@ -298,8 +333,7 @@ with col_btn1:
             st.session_state.calculate_clicked = True
 with col_btn2:
     if st.button("🔄 重置所有设置", use_container_width=True):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
+        reset_all_settings()
         st.rerun()
 
 # ---------- 显示计算结果 ----------
