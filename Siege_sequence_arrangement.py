@@ -14,7 +14,7 @@ st.markdown("---")
 
 # ---------- 初始化会话状态 ----------
 def init_default_state():
-    """设置或重置所有自定义变量为默认值（3匹马）"""
+    """设置所有自定义变量为默认值（3匹马）"""
     if 'num_horses' not in st.session_state:
         st.session_state.num_horses = 3
     if 'attack_horse_names' not in st.session_state:
@@ -32,33 +32,6 @@ def init_default_state():
         }
 
 init_default_state()
-
-# ---------- 重置函数（优雅封装）----------
-def reset_all_settings():
-    """重置所有用户设置为初始状态（3匹马，默认名称，全部清空）"""
-    # 1. 重置马匹数量
-    st.session_state.num_horses = 3
-    # 2. 重置马匹名称
-    st.session_state.attack_horse_names = ["进攻方上马", "进攻方中马", "进攻方下马"]
-    st.session_state.defense_horse_names = ["防守方上马", "防守方中马", "防守方下马"]
-    # 3. 重置出场顺序
-    st.session_state.attack_order = [0, 1, 2]
-    # 4. 重置格子分配
-    total_slots = st.session_state.num_horses * 2
-    st.session_state.slot_selections = {
-        'attack': [None] * total_slots,
-        'defense': [None] * total_slots
-    }
-    # 5. 清除计算结果标记
-    if 'calculate_clicked' in st.session_state:
-        del st.session_state.calculate_clicked
-    
-    # 6. 强制同步所有 widget 的值（避免残留显示）
-    for i in range(total_slots):
-        st.session_state[f"attack_slot_{i}"] = "空"
-        st.session_state[f"defense_slot_{i}"] = "空"
-    for i in range(3):
-        st.session_state[f"attack_order_{i}"] = i
 
 # ---------- 回调函数：格子选择变化时的冲突处理 ----------
 def on_slot_change(side: str, slot_idx: int):
@@ -133,7 +106,7 @@ with col1:
             else:
                 st.empty()
 
-    col_btn1, col_btn2 = st.columns(2)
+    col_btn1, _ = st.columns(2)
     with col_btn1:
         if st.button("添加", key="add_attack"):
             if st.session_state.num_horses < 6:
@@ -322,7 +295,7 @@ def find_best_strategies(attack_order, num_horses):
 
 # ---------- 计算按钮 ----------
 st.markdown("---")
-col_btn1, col_btn2 = st.columns([1, 3])
+col_btn1, _ = st.columns([1, 3])  # 仅保留一个按钮列
 with col_btn1:
     if st.button("🚀 计算最佳防守策略", type="primary", use_container_width=True):
         attack_missing = sum(1 for i in range(st.session_state.num_horses) if get_horse_position('attack', i) is None)
@@ -331,10 +304,6 @@ with col_btn1:
             st.error(f"请先为所有马匹分配格子！进攻方还有 {attack_missing} 匹未分配，防守方还有 {defense_missing} 匹未分配。")
         else:
             st.session_state.calculate_clicked = True
-with col_btn2:
-    if st.button("🔄 重置所有设置", use_container_width=True):
-        reset_all_settings()
-        st.rerun()
 
 # ---------- 显示计算结果 ----------
 if st.session_state.get('calculate_clicked', False):
