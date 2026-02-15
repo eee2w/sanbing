@@ -35,7 +35,7 @@ with st.sidebar:
     
     st.subheader("兑换比例（如无特殊需求请勿修改）")
     # 将所有兑换比例改为浮点数
-    POINTS_PER_WOOD = st.number_input("木头兑换比例 (积分/个)", min_value=0.0, value=0.083, step=0.1, format="%.3f")
+    POINTS_PER_WOOD = st.number_input("木头兑换比例 (积分/个)", min_value=0.0, value=0.084, step=0.1, format="%.3f")
     POINTS_PER_MITHRIL = st.number_input("精金兑换比例 (积分/个)", min_value=0.0, value=1.67, step=0.1, format="%.2f")
     POINTS_PER_LAPIS = st.number_input("青金石兑换比例 (积分/个)", min_value=0.0, value=5.0, step=0.1, format="%.2f")
     POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例 (积分/个)", min_value=0.0, value=25.0, step=0.1, format="%.2f")
