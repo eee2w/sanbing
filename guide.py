@@ -188,7 +188,7 @@ apps = [
     {
         "name": "资源计算器",
         "url": "https://sanbing-n5bezq4hqemuts7jhewaat.streamlit.app/",
-        "description": "计算包裹内资源总量",
+        "description": "计算包裹内资源总量（肉木煤铁）",
         "icon": "📊",
         "status": "online"
     },
