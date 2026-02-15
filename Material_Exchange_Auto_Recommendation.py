@@ -43,11 +43,11 @@ with st.sidebar:
     CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=0, step=1)
     
     st.subheader("兑换比例")
-    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.1, step=0.1, format="%.2f")
-    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=2.0, step=0.1, format="%.2f")
-    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=6.0, step=0.1, format="%.2f")
-    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=30.0, step=1.0, format="%.2f")
-    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=6.0, step=0.1, format="%.2f")
+    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.084, step=0.1, format="%.3f")
+    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=1.67, step=0.1, format="%.2f")
+    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=5.0, step=0.1, format="%.2f")
+    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=25.0, step=1.0, format="%.2f")
+    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=5.0, step=0.1, format="%.2f")
     
     st.subheader("等级差设置")
     st.caption("步兵等级比弓兵高多少级？")
