@@ -752,7 +752,7 @@ class AutoUpgradeCalculator:
         return result
 
 # --- 4. 计算并展示结果 ---
-st.header("🚀 自动升级计算")
+st.header("🚀 自动升级计算（兑换一次可能得到多个材料，尤其是木头）")
 
 if st.button("开始自动计算最佳升级方案", type="primary", use_container_width=True):
     with st.spinner("正在计算最佳升级方案..."):
