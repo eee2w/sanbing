@@ -219,6 +219,13 @@ apps = [
         "description": "根据对方车头攻城顺序计算己方防守车头卡秒顺序（建议电脑端使用）",
         "icon": "🛡️",
         "status": "online"
+    },
+    {
+        "name": "最强爆兵积分计算器",
+        "url": "https://sanbing-joxjckmwsevnqieatakkdj.streamlit.app/",
+        "description": "通过训练加速道具时长可直接计算最强城主爆兵可得积分",
+        "icon": "👨",
+        "status": "online"
     }
 ]
 
