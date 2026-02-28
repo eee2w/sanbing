@@ -2,13 +2,17 @@ import streamlit as st
 import pandas as pd
 
 # 页面标题
-st.title("士兵训练计算器 (秒/天版)")
+st.title("士兵训练/晋升计算器 (秒/天版)")
 
 st.markdown("""
-本工具根据士兵等级、训练速度加成（百分比）和每次训练数量，计算：
-- **每次训练所需总时长**（显示为 时:分:秒）
-- 在给定的**加速时长**（单位：天）内，一共能训练多少士兵
-- 以及获得的**练兵总积分**
+本工具支持两种模式：
+- **训练**：直接训练指定等级的士兵。
+- **晋升**：将士兵从初始等级晋升到目标等级（消耗时间 = 目标等级训练时长 - 初始等级训练时长）。
+
+根据输入的训练速度加成（百分比）和每次训练数量，计算：
+- 每次训练/晋升所需总时长（显示为 时:分:秒）
+- 在给定的**加速时长**（单位：天）内，一共能训练/晋升多少士兵
+- 以及获得的**总积分**
 """)
 
 # ---------- 预设数据 ----------
@@ -65,7 +69,7 @@ with st.sidebar:
             key = f"time_input_{level}"
             st.number_input(
                 "秒",
-                value=float(default_time_per_sec[level]),  # 确保浮点数
+                value=float(default_time_per_sec[level]),
                 min_value=0.1,
                 step=0.1,
                 format="%.1f",
@@ -76,18 +80,47 @@ with st.sidebar:
             # 显示积分（只读）
             st.write(f"**{point_dict[level]}**")
 
-# ---------- 主页面：输入控件 ----------
+# ---------- 主页面：模式选择与输入控件 ----------
 st.subheader("⚙️ 设置参数")
 
-# 等级选择
-level = st.selectbox(
-    "选择士兵等级",
-    options=list(range(1, 12)),
-    format_func=lambda x: level_display_names[x]
+# 模式选择
+mode = st.radio(
+    "选择功能",
+    ["训练", "晋升"],
+    horizontal=True,
+    index=0
 )
 
-# 获取当前等级对应的训练时长（从侧边栏输入框读取）
-current_time_per_sec = st.session_state[f"time_input_{level}"]
+# 根据模式显示不同的等级选择
+if mode == "训练":
+    level = st.selectbox(
+        "选择士兵等级",
+        options=list(range(1, 12)),
+        format_func=lambda x: level_display_names[x]
+    )
+    # 获取当前等级对应的训练时长
+    current_time_per_sec = st.session_state[f"time_input_{level}"]
+    # 晋升模式不需要初始等级，但为了后续代码统一，占位
+    initial_level = None
+else:  # 晋升模式
+    col_initial, col_target = st.columns(2)
+    with col_initial:
+        initial_level = st.selectbox(
+            "初始等级",
+            options=list(range(1, 11)),  # 不能选11级作为初始，因为没有更高等级可晋升
+            format_func=lambda x: level_display_names[x],
+            key="initial_level"
+        )
+    with col_target:
+        target_level = st.selectbox(
+            "目标等级",
+            options=list(range(initial_level + 1, 12)) if initial_level else list(range(2, 12)),
+            format_func=lambda x: level_display_names[x],
+            key="target_level"
+        )
+    # 获取初始和目标等级的训练时长
+    initial_time = st.session_state[f"time_input_{initial_level}"]
+    target_time = st.session_state[f"time_input_{target_level}"]
 
 # 训练速度加成（百分比）
 col1, col2 = st.columns(2)
@@ -113,25 +146,45 @@ if st.button("🚀 计算", type="primary"):
     if denominator <= 0:
         st.error("速度加成之和 (1+v+v_plus) 必须大于 0，请检查输入！")
     else:
-        # 每次训练总时长（秒）
-        time_total_sec = current_time_per_sec * num / denominator
+        # 根据模式计算
+        if mode == "训练":
+            # 每次训练总时长
+            time_total_sec = current_time_per_sec * num / denominator
+            # 单次获得积分（每个士兵）
+            point_per_soldier = point_dict[level]
+            # 用于显示的标签
+            label_unit = "训练"
+        else:  # 晋升模式
+            # 晋升一个士兵所需时长 = 目标等级时长 - 初始等级时长
+            time_per_promotion = target_time - initial_time
+            if time_per_promotion <= 0:
+                st.error("目标等级必须高于初始等级！")
+                st.stop()
+            # 每次晋升总时长（晋升 num 个士兵）
+            time_total_sec = time_per_promotion * num / denominator
+            # 每个士兵获得的积分 = 目标积分 - 初始积分
+            point_per_soldier = point_dict[target_level] - point_dict[initial_level]
+            if point_per_soldier < 0:
+                st.error("目标等级积分低于初始等级，请检查积分设置！")
+                st.stop()
+            label_unit = "晋升"
 
         # 加速时长转秒
         duration_sec = duration_days * 24 * 3600
 
-        # 可训练士兵数
-        soldiers_trained = (duration_sec / time_total_sec) * num
+        # 可训练/晋升士兵数
+        soldiers_done = (duration_sec / time_total_sec) * num
 
-        # 练兵总积分
-        total_points = soldiers_trained * point_dict[level]
+        # 总积分
+        total_points = soldiers_done * point_per_soldier
 
         # 显示结果
         st.subheader("📊 计算结果")
         col_res1, col_res2, col_res3 = st.columns(3)
         with col_res1:
             formatted_time = format_hms(time_total_sec)
-            st.metric("每次训练总时长", formatted_time)
+            st.metric(f"每次{label_unit}总时长", formatted_time)
         with col_res2:
-            st.metric("加速时长内可训练士兵数", f"{soldiers_trained:.2f} 名")
+            st.metric(f"加速时长内可{label_unit}士兵数", f"{soldiers_done:.2f} 名")
         with col_res3:
-            st.metric("练兵总积分", f"{total_points:.2f}")
+            st.metric(f"{label_unit}总积分", f"{total_points:.2f}")
