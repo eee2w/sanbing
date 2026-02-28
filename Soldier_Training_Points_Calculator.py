@@ -12,11 +12,11 @@ st.markdown("""
 """)
 
 # ---------- 预设数据 ----------
-# 各等级默认训练时长（秒）
+# 各等级默认训练时长（秒，浮点数）
 default_time_per_sec = {
-    1: 5 * 60, 2: 10 * 60, 3: 15 * 60, 4: 20 * 60, 5: 25 * 60,
-    6: 30 * 60, 7: 35 * 60, 8: 40 * 60, 9: 45 * 60, 10: 50 * 60,
-    11: 55 * 60
+    1: 5 * 60.0, 2: 10 * 60.0, 3: 15 * 60.0, 4: 20 * 60.0, 5: 25 * 60.0,
+    6: 30 * 60.0, 7: 35 * 60.0, 8: 40 * 60.0, 9: 45 * 60.0, 10: 50 * 60.0,
+    11: 55 * 60.0
 }
 
 # 各等级训练积分（程序员预设，可根据实际调整）
@@ -46,8 +46,14 @@ with st.sidebar:
     st.header("⚙️ 单个士兵训练时长（可编辑）")
     st.caption("修改下方数值将实时影响计算结果")
 
-    # 用于临时存储每个等级的输入框key
-    time_input_keys = {}
+    # 创建列标题
+    col_title1, col_title2, col_title3 = st.columns([1.2, 2, 1])
+    with col_title1:
+        st.markdown("**等级**")
+    with col_title2:
+        st.markdown("**训练时长 (秒)**")
+    with col_title3:
+        st.markdown("**积分**")
 
     # 逐行显示等级、时长输入框、积分
     for level in range(1, 12):
@@ -55,14 +61,14 @@ with st.sidebar:
         with cols[0]:
             st.write(level_display_names[level])
         with cols[1]:
-            # 创建数字输入框，key唯一，默认值为预设时长
+            # 浮点数输入框，步长0.1，保留一位小数
             key = f"time_input_{level}"
-            time_input_keys[level] = key
             st.number_input(
                 "秒",
-                value=default_time_per_sec[level],
-                min_value=1,
-                step=1,
+                value=float(default_time_per_sec[level]),  # 确保浮点数
+                min_value=0.1,
+                step=0.1,
+                format="%.1f",
                 key=key,
                 label_visibility="collapsed"
             )
