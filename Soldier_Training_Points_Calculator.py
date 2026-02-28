@@ -25,16 +25,16 @@ default_time_per_sec = {
 
 # 各等级训练积分（程序员预设，可根据实际调整）
 point_dict = {
-    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-    11: 1500   # 宫1兵积分更高
+    1: 90, 2: 210, 3: 180, 4: 270, 5: 390,
+    6: 610, 7: 840, 8: 1150, 9: 1520, 10: 2000,
+    11: 2490#,  12: 3094
 }
 
 # 等级显示名称
 level_display_names = {
     1: "1级兵", 2: "2级兵", 3: "3级兵", 4: "4级兵", 5: "5级兵",
     6: "6级兵", 7: "7级兵", 8: "8级兵", 9: "9级兵", 10: "10级兵",
-    11: "宫1兵"
+    11: "宫1兵"#, 12: "宫2兵"
 }
 
 # ---------- 辅助函数：秒转时:分:秒 ----------
@@ -125,16 +125,16 @@ else:  # 晋升模式
 # 训练速度加成（百分比）
 col1, col2 = st.columns(2)
 with col1:
-    v_percent = st.number_input("训练速度 v (%)", value=0.0, step=1.0, format="%.1f")
+    v_percent = st.number_input("训练速度 (%)", value=0.0, step=1.0, format="%.2f")
 with col2:
-    v_plus_percent = st.number_input("训练速度额外加成 v_plus (%)", value=0.0, step=1.0, format="%.1f")
+    v_plus_percent = st.number_input("训练速度额外加成 (%)", value=0.0, step=1.0, format="%.1f")
 
 # 每次训练数量和加速时长
 col3, col4 = st.columns(2)
 with col3:
     num = st.number_input("每次训练数量 num", value=1, min_value=1, step=1)
 with col4:
-    duration_days = st.number_input("加速时长 duration (天)", value=1.0, min_value=0.0, step=0.5, format="%.2f")
+    duration_days = st.number_input("加速时长 (天)", value=1.0, min_value=0.0, step=1, format="%.2f")
 
 # 计算按钮
 if st.button("🚀 计算", type="primary"):
