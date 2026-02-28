@@ -8,79 +8,89 @@ st.markdown("""
 本工具根据士兵等级、训练速度加成（百分比）和每次训练数量，计算：
 - **每次训练所需总时长**（显示为 时:分:秒）
 - 在给定的**加速时长**（单位：天）内，一共能训练多少士兵
+- 以及获得的**练兵总积分**
 """)
 
-# 定义等级对应的单个士兵训练时间（单位：秒）
-level_to_time_per_sec = {
-    1: 5 * 60,     # 5分钟 = 300秒
-    2: 10 * 60,    # 600秒
-    3: 15 * 60,    # 900秒
-    4: 20 * 60,    # 1200秒
-    5: 25 * 60,    # 1500秒
-    6: 30 * 60,    # 1800秒
-    7: 35 * 60,    # 2100秒
-    8: 40 * 60,    # 2400秒
-    9: 45 * 60,    # 2700秒
-    10: 50 * 60,   # 3000秒
-    11: 55 * 60    # 3300秒
+# ---------- 预设数据 ----------
+# 各等级默认训练时长（秒）
+default_time_per_sec = {
+    1: 5 * 60, 2: 10 * 60, 3: 15 * 60, 4: 20 * 60, 5: 25 * 60,
+    6: 30 * 60, 7: 35 * 60, 8: 40 * 60, 9: 45 * 60, 10: 50 * 60,
+    11: 55 * 60
 }
 
-# 自定义等级显示文本
+# 各等级训练积分（程序员预设，可根据实际调整）
+point_dict = {
+    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
+    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
+    11: 1500   # 宫1兵积分更高
+}
+
+# 等级显示名称
 level_display_names = {
-    1: "1级兵",
-    2: "2级兵",
-    3: "3级兵",
-    4: "4级兵",
-    5: "5级兵",
-    6: "6级兵",
-    7: "7级兵",
-    8: "8级兵",
-    9: "9级兵",
-    10: "10级兵",
+    1: "1级兵", 2: "2级兵", 3: "3级兵", 4: "4级兵", 5: "5级兵",
+    6: "6级兵", 7: "7级兵", 8: "8级兵", 9: "9级兵", 10: "10级兵",
     11: "宫1兵"
 }
 
-# ------------------ 辅助函数：将秒数格式化为 时:分:秒 ------------------
+# ---------- 辅助函数：秒转时:分:秒 ----------
 def format_hms(seconds):
-    """将秒数转换为 时:分:秒 格式（秒四舍五入取整）"""
     total_sec = int(round(seconds))
     hours = total_sec // 3600
     minutes = (total_sec % 3600) // 60
     secs = total_sec % 60
     return f"{hours}时{minutes}分{secs}秒"
 
-# ------------------ 侧边栏：展示等级-时间对照表 ------------------
+# ---------- 侧边栏：可编辑的训练时长与积分 ----------
 with st.sidebar:
-    st.header("📋 士兵等级训练时长对照表")
-    # 构建表格数据（只保留等级和秒数）
-    table_data = []
-    for lvl, sec in level_to_time_per_sec.items():
-        table_data.append({
-            "等级": level_display_names[lvl],
-            "训练时长 (秒)": sec
-        })
-    df = pd.DataFrame(table_data)
-    st.dataframe(df.set_index("等级"), use_container_width=True)
+    st.header("⚙️ 单个士兵训练时长（可编辑）")
+    st.caption("修改下方数值将实时影响计算结果")
 
-# ------------------ 主页面：输入控件 ------------------
+    # 用于临时存储每个等级的输入框key
+    time_input_keys = {}
+
+    # 逐行显示等级、时长输入框、积分
+    for level in range(1, 12):
+        cols = st.columns([1.2, 2, 1])
+        with cols[0]:
+            st.write(level_display_names[level])
+        with cols[1]:
+            # 创建数字输入框，key唯一，默认值为预设时长
+            key = f"time_input_{level}"
+            time_input_keys[level] = key
+            st.number_input(
+                "秒",
+                value=default_time_per_sec[level],
+                min_value=1,
+                step=1,
+                key=key,
+                label_visibility="collapsed"
+            )
+        with cols[2]:
+            # 显示积分（只读）
+            st.write(f"**{point_dict[level]}**")
+
+# ---------- 主页面：输入控件 ----------
 st.subheader("⚙️ 设置参数")
 
-# 第一行：等级选择
+# 等级选择
 level = st.selectbox(
     "选择士兵等级",
-    options=list(level_to_time_per_sec.keys()),
+    options=list(range(1, 12)),
     format_func=lambda x: level_display_names[x]
 )
-time_per_sec = level_to_time_per_sec[level]
 
-# 第二行：训练速度加成（单位 %）
+# 获取当前等级对应的训练时长（从侧边栏输入框读取）
+current_time_per_sec = st.session_state[f"time_input_{level}"]
+
+# 训练速度加成（百分比）
 col1, col2 = st.columns(2)
 with col1:
     v_percent = st.number_input("训练速度 v (%)", value=0.0, step=1.0, format="%.1f")
 with col2:
     v_plus_percent = st.number_input("训练速度额外加成 v_plus (%)", value=0.0, step=1.0, format="%.1f")
 
-# 第三行：每次训练数量和加速时长
+# 每次训练数量和加速时长
 col3, col4 = st.columns(2)
 with col3:
     num = st.number_input("每次训练数量 num", value=1, min_value=1, step=1)
@@ -89,7 +99,7 @@ with col4:
 
 # 计算按钮
 if st.button("🚀 计算", type="primary"):
-    # 将百分比转换为小数
+    # 百分比转小数
     v = v_percent / 100.0
     v_plus = v_plus_percent / 100.0
     denominator = 1 + v + v_plus
@@ -97,21 +107,25 @@ if st.button("🚀 计算", type="primary"):
     if denominator <= 0:
         st.error("速度加成之和 (1+v+v_plus) 必须大于 0，请检查输入！")
     else:
-        # 计算每次训练总时长（秒）
-        time_total_sec = time_per_sec * num / denominator
+        # 每次训练总时长（秒）
+        time_total_sec = current_time_per_sec * num / denominator
 
-        # 将加速时长从天转换为秒
+        # 加速时长转秒
         duration_sec = duration_days * 24 * 3600
 
-        # 计算加速时长内可训练的士兵数量
+        # 可训练士兵数
         soldiers_trained = (duration_sec / time_total_sec) * num
+
+        # 练兵总积分
+        total_points = soldiers_trained * point_dict[level]
 
         # 显示结果
         st.subheader("📊 计算结果")
-        col_res1, col_res2 = st.columns(2)
+        col_res1, col_res2, col_res3 = st.columns(3)
         with col_res1:
             formatted_time = format_hms(time_total_sec)
-            st.metric("每次训练总时长 (time_total)", formatted_time)
+            st.metric("每次训练总时长", formatted_time)
         with col_res2:
-            st.metric("加速时长内可训练士兵数",
-                      f"{soldiers_trained:.2f} 名")
+            st.metric("加速时长内可训练士兵数", f"{soldiers_trained:.2f} 名")
+        with col_res3:
+            st.metric("练兵总积分", f"{total_points:.2f}")
