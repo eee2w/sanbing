@@ -1,10 +1,21 @@
 import streamlit as st
 import pandas as pd
 
+# ---------- 注入 JavaScript：数字输入框获得焦点时自动全选 ----------
+st.markdown("""
+<script>
+document.addEventListener('focus', function(e) {
+    if (e.target && e.target.matches && e.target.matches('input[type=number]')) {
+        e.target.select();
+    }
+}, true);
+</script>
+""", unsafe_allow_html=True)
+
 st.title("最强爆兵积分计算器")
 
 st.markdown("""
-支持"训练""晋升"两种模式，点击左上角双箭头打开侧边栏即可查看不同等级士兵的训练时长与积分 
+支持"训练""晋升"两种模式： 
 游戏中点击左上角头像下面的战力，即可在里面找到“兵营训练速度”
 """)
 
@@ -53,7 +64,7 @@ with st.sidebar:
     with col_title3:
         st.markdown("**积分**")
 
-    for level in range(1, MAX_LEVEL + 1):   # 关键：循环到MAX_LEVEL
+    for level in range(1, MAX_LEVEL + 1):
         cols = st.columns([1.2, 2, 1])
         with cols[0]:
             st.write(level_display_names[level])
@@ -106,7 +117,7 @@ else:  # 晋升模式
 # 训练速度加成（百分比）
 col1, col2 = st.columns(2)
 with col1:
-    v_percent = st.number_input("训练速度 (%)", value=0.0, step=1.0, format="%.2f")
+    v_percent = st.number_input("训练速度 (%)", value=0.0, step=1.0, format="%.1f")
 with col2:
     v_plus_percent = st.number_input("训练速度额外加成 (%)", value=0.0, step=1.0, format="%.1f")
 
