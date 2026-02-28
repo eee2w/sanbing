@@ -119,7 +119,7 @@ with col2:
 # 每次训练数量和加速时长
 col3, col4 = st.columns(2)
 with col3:
-    num = st.number_input("每次训练数量 num", value=1, min_value=1, step=1)
+    num = st.number_input("每次训练数量", value=1, min_value=1, step=1)
 with col4:
     duration_days = st.number_input("加速时长 (天)", value=1.0, min_value=0.0, step=1.0, format="%.2f")
 
