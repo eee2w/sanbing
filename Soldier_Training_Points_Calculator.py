@@ -6,7 +6,7 @@ st.title("士兵训练计算器 (秒/天版)")
 
 st.markdown("""
 本工具根据士兵等级、训练速度加成（百分比）和每次训练数量，计算：
-- **每次训练所需总时长**（单位：秒）
+- **每次训练所需总时长**（显示为 时:分:秒）
 - 在给定的**加速时长**（单位：天）内，一共能训练多少士兵
 """)
 
@@ -40,6 +40,15 @@ level_display_names = {
     11: "宫1兵"
 }
 
+# ------------------ 辅助函数：将秒数格式化为 时:分:秒 ------------------
+def format_hms(seconds):
+    """将秒数转换为 时:分:秒 格式（秒四舍五入取整）"""
+    total_sec = int(round(seconds))
+    hours = total_sec // 3600
+    minutes = (total_sec % 3600) // 60
+    secs = total_sec % 60
+    return f"{hours}时{minutes}分{secs}秒"
+
 # ------------------ 侧边栏：展示等级-时间对照表 ------------------
 with st.sidebar:
     st.header("📋 士兵等级训练时长对照表")
@@ -56,7 +65,7 @@ with st.sidebar:
 # ------------------ 主页面：输入控件 ------------------
 st.subheader("⚙️ 设置参数")
 
-# 第一行：等级选择（自定义显示文本）
+# 第一行：等级选择
 level = st.selectbox(
     "选择士兵等级",
     options=list(level_to_time_per_sec.keys()),
@@ -101,11 +110,8 @@ if st.button("🚀 计算", type="primary"):
         st.subheader("📊 计算结果")
         col_res1, col_res2 = st.columns(2)
         with col_res1:
-            st.metric("每次训练总时长 (time_total)",
-                      f"{time_total_sec:.2f} 秒 ({time_total_sec/60:.2f} 分钟)")
+            formatted_time = format_hms(time_total_sec)
+            st.metric("每次训练总时长 (time_total)", formatted_time)
         with col_res2:
             st.metric("加速时长内可训练士兵数",
                       f"{soldiers_trained:.2f} 名")
-
-        # 可选：添加一个简短的公式说明（但已按您的要求删除了详细展开）
-        st.caption(f"当前速度倍率：1 + {v:.2f} + {v_plus:.2f} = {denominator:.2f}")
