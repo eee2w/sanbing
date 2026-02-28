@@ -124,7 +124,7 @@ with col1:
     )
 with col2:
     v_plus_percent_str = st.text_input(
-        "训练速度额外加成 (%)",
+        "训练速度额外加成(%)(典韦、马超、香香加成)",
         value="",
         placeholder="0.0",
         key="v_plus_percent_input"
