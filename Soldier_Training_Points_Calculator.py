@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# 注入JavaScript（自动全选，可选保留）
+# 注入 JavaScript 使数字输入框获得焦点时自动全选（保留可选，主要作用于侧边栏）
 st.markdown("""
 <script>
 document.addEventListener('focus', function(e) {
@@ -19,8 +19,28 @@ st.markdown("""
 """)
 
 # ---------- 预设数据 ----------
-# ...（此处保持 default_time_per_sec, point_dict, level_display_names, MAX_LEVEL 不变）
-# 略...
+MAX_LEVEL = 12  # 最大等级（1~12）
+
+# 各等级默认训练时长（秒，浮点数）
+default_time_per_sec = {
+    1: 11.5 , 2: 16.5, 3: 23.5 , 4: 31.5 , 5: 42.5 ,
+    6: 59.5 , 7: 82.5 , 8: 111.5 , 9: 129.5 , 10: 151.5 ,
+    11: 550 , 12: 600    
+}
+
+# 各等级训练积分（程序员预设）
+point_dict = {
+    1: 90, 2: 210, 3: 180, 4: 270, 5: 390,
+    6: 610, 7: 840, 8: 1150, 9: 1520, 10: 2000,
+    11: 2490, 12: 3094   
+}
+
+# 等级显示名称
+level_display_names = {
+    1: "1级兵", 2: "2级兵", 3: "3级兵", 4: "4级兵", 5: "5级兵",
+    6: "6级兵", 7: "7级兵", 8: "8级兵", 9: "9级兵", 10: "10级兵",
+    11: "宫1兵", 12: "宫2兵"
+}
 
 # ---------- 辅助函数：秒转时:分:秒 ----------
 def format_hms(seconds):
@@ -31,14 +51,40 @@ def format_hms(seconds):
     return f"{hours}时{minutes}分{secs}秒"
 
 # ---------- 侧边栏：可编辑的训练时长与积分 ----------
-# ...（侧边栏保持原样，使用 st.number_input 方便微调）
-# 略...
+with st.sidebar:
+    st.header("⚙️ 单个士兵训练时长")
+
+    col_title1, col_title2, col_title3 = st.columns([1.2, 2, 1])
+    with col_title1:
+        st.markdown("**等级**")
+    with col_title2:
+        st.markdown("**训练时长 (秒)**")
+    with col_title3:
+        st.markdown("**积分**")
+
+    for level in range(1, MAX_LEVEL + 1):
+        cols = st.columns([1.2, 2, 1])
+        with cols[0]:
+            st.write(level_display_names[level])
+        with cols[1]:
+            key = f"time_input_{level}"
+            st.number_input(
+                "秒",
+                value=float(default_time_per_sec[level]),
+                min_value=0.1,
+                step=0.1,
+                format="%.1f",
+                key=key,
+                label_visibility="collapsed"
+            )
+        with cols[2]:
+            st.write(f"**{point_dict[level]}**")
 
 # ---------- 主页面：模式选择与输入控件 ----------
 st.subheader("⚙️ 设置参数")
+
 mode = st.radio("选择功能", ["训练", "晋升"], horizontal=True, index=0)
 
-# 等级选择（与之前相同）
 if mode == "训练":
     level = st.selectbox(
         "选择士兵等级",
@@ -47,12 +93,12 @@ if mode == "训练":
     )
     current_time_per_sec = st.session_state[f"time_input_{level}"]
     initial_level = None
-else:
+else:  # 晋升模式
     col_initial, col_target = st.columns(2)
     with col_initial:
         initial_level = st.selectbox(
             "初始等级",
-            options=list(range(1, MAX_LEVEL)),
+            options=list(range(1, MAX_LEVEL)),  # 不能选最大等级作为初始
             format_func=lambda x: level_display_names[x],
             key="initial_level"
         )
@@ -66,13 +112,13 @@ else:
     initial_time = st.session_state[f"time_input_{initial_level}"]
     target_time = st.session_state[f"time_input_{target_level}"]
 
-# ---------- 改用文本输入框，模仿资源包数量填写方式 ----------
+# 训练速度加成（百分比） - 使用文本输入，占位符显示默认值
 col1, col2 = st.columns(2)
 with col1:
     v_percent_str = st.text_input(
         "训练速度 (%)",
-        value="",                # 初始为空
-        placeholder="0.0",       # 提示默认值
+        value="",
+        placeholder="0.0",
         key="v_percent_input"
     )
 with col2:
@@ -83,6 +129,7 @@ with col2:
         key="v_plus_percent_input"
     )
 
+# 每次训练数量和加速时长 - 使用文本输入
 col3, col4 = st.columns(2)
 with col3:
     num_str = st.text_input(
