@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 
 st.title("最强爆兵积分计算器")
-st.markdown("""
-宫阙1士兵参数周一加上，资源消耗就你们自己算吧  
+st.markdown("""  
 支持"训练""晋升"两种模式  
 点击左上角双箭头打开侧边栏即可查看不同等级士兵的训练时长与积分   
 游戏中点击左上角头像下面的战力，即可在里面找到“兵营训练速度”
