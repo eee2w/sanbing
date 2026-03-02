@@ -1,17 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-# 注入 JavaScript 使数字输入框获得焦点时自动全选
-st.markdown("""
-<script>
-document.addEventListener('focus', function(e) {
-    if (e.target && e.target.matches && e.target.matches('input[type=number]')) {
-        e.target.select();
-    }
-}, true);
-</script>
-""", unsafe_allow_html=True)
-
 st.title("最强爆兵积分计算器")
 st.markdown("""
 宫阙1士兵参数周一加上，资源消耗就你们自己算吧  
@@ -100,12 +89,6 @@ with st.sidebar:
         with cols[2]:
             st.write(f"**{LEVEL_DATA.loc[lvl, 'points']}**")
 
-    # 恢复默认时长按钮
-    if st.button("恢复默认时长"):
-        for lvl in LEVEL_DATA.index:
-            st.session_state[f"time_input_{lvl}"] = LEVEL_DATA.loc[lvl, "time_default"]
-        st.success("已恢复默认训练时长")
-
 # ---------- 主页面 ----------
 st.subheader("⚙️ 设置参数")
 
@@ -193,10 +176,7 @@ if st.button("🚀 计算", type="primary"):
 
     # 加速时长内可完成的士兵数
     duration_sec = duration_days * 24 * 3600
-    soldiers_done = (duration_sec / total_time_sec) * num   # 这里乘以 num 是为了得到总士兵数（因为总耗时是一次操作的时间）
-    # 注：原公式为 (duration_sec / total_time_sec) * num，等价于 duration_sec / (time_per_unit) ，即总秒数除以单兵耗时
-    # 我们保留原逻辑。
-
+    soldiers_done = (duration_sec / total_time_sec) * num
     total_points = soldiers_done * points_per_unit
 
     # 显示结果
