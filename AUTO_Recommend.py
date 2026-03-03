@@ -217,7 +217,7 @@ else:
 st.markdown("---")
 
 # ===== 新增：其他兑换模块 =====
-st.header("🛒 其他兑换 (消耗积分)")
+st.header("🛒 其他兑换")
 
 # 初始化行数
 if 'other_rows' not in st.session_state:
