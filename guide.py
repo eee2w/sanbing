@@ -193,15 +193,8 @@ apps = [
         "status": "online"
     },
     {
-        "name": "神兵玉石消耗计算",
-        "url": "https://sanbing-leplbmdgnmbpzpmsmfrgsv.streamlit.app/",
-        "description": "计算神兵玉石升级消耗及活动积分兑换是否充足",
-        "icon": "⚔️",
-        "status": "online"
-    },
-    {
         "name": "积分兑换神兵玉石材料自动推荐",
-        "url": "https://sanbing-owwxmsziy9dpvq9fp3ijvc.streamlit.app/",
+        "url": "https://sanbing-j6mgryevqhhls4nv3agpzy.streamlit.app/",
         "description": "智能推荐活动积分如何兑换神兵玉石材料",
         "icon": "📅",
         "status": "online"
