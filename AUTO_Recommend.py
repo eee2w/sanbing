@@ -83,7 +83,6 @@ with st.sidebar:
     )
     st.caption(f"当前设置：玉石等级需要达到神兵最低等级的{JADE_PERCENTAGE}%")
 
-st.markdown("---")
 
 # --- 2. 当前等级输入（根据版本显示不同界面）---
 WEAPONS = {}  # 存储神兵数据
@@ -230,7 +229,7 @@ with col1:
         st.session_state.other_rows += 1
         st.rerun()
 with col2:
-    if st.button("➖ 删除最后一行"):
+    if st.button("➖ 删除"):
         if st.session_state.other_rows > 0:
             st.session_state.other_rows -= 1
             st.rerun()
