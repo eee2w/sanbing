@@ -237,8 +237,8 @@ with col2:
 # 表头
 cols = st.columns([3, 1, 1])
 cols[0].markdown("**物品名称**")
-cols[1].markdown("**单次积分**")
-cols[2].markdown("**次数**")
+cols[1].markdown("**单次兑换需要积分**")
+cols[2].markdown("**兑换次数**")
 
 # 循环显示每一行
 for i in range(st.session_state.other_rows):
