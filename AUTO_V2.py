@@ -59,7 +59,7 @@ if mode == "性价比比较":
         conversion_factor = st.number_input(
             "一点全阵营属性 = 多少点单兵种属性", 
             min_value=0.0, 
-            value=1.0, 
+            value=1.825, 
             step=0.1,
             help="将全阵营属性折算为单兵种属性的系数"
         )
