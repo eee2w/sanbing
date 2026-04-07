@@ -61,6 +61,7 @@ if mode == "性价比比较":
             min_value=0.0, 
             value=1.825, 
             step=0.1,
+            format="%.3f",
             help="将全阵营属性折算为单兵种属性的系数"
         )
         
