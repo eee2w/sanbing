@@ -32,7 +32,7 @@ if mode == "性价比比较":
             jade_attr_percent = st.number_input(
                 "升级玉石提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=1, 
+                value=1.0, 
                 step=0.1,
                 format="%.1f",
                 help="每次升级玉石提升的单兵种属性百分比"
