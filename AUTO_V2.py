@@ -23,7 +23,7 @@ if mode == "性价比比较":
         col_a, col_b = st.columns(2)
         with col_a:
             jade_knife_cost = st.number_input(
-                "升级玉石消耗的琢玉刀数量", 
+                "点一下升级消耗的琢玉刀数量", 
                 min_value=1, 
                 value=1, 
                 step=1,
@@ -40,7 +40,7 @@ if mode == "性价比比较":
         
         with col_b:
             horse_buckle_cost = st.number_input(
-                "升级马具消耗的铜扣数量", 
+                "点一下升级消耗的铜扣数量", 
                 min_value=1, 
                 value=1, 
                 step=1,
@@ -56,11 +56,11 @@ if mode == "性价比比较":
             )
         
         conversion_factor = st.number_input(
-            "一点全阵营属性 = 多少点单兵种属性", 
+            "一点全阵营属性 = 多少点单兵种属性（默认1%全士兵生命防御=1.5%单兵种加成，1%全士兵攻击破坏=2.1%单兵种加成，平均1%=1.8%）", 
             min_value=0.0, 
-            value=1.825, 
+            value=1.80, 
             step=0.01,
-            format="%.3f",
+            format="%.2f",
             help="将全阵营属性折算为单兵种属性的系数"
         )
         
