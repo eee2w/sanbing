@@ -19,7 +19,6 @@ if mode == "性价比比较":
     
     st.header("🔍 琢玉刀 vs 铜扣 性价比比较")
     with st.expander("点击展开，比较琢玉刀与铜扣的性价比", expanded=True):
-        st.markdown("根据升级玉石和马具的资源消耗及属性提升，计算一个琢玉刀相当于几个铜扣。")
         
         col_a, col_b = st.columns(2)
         with col_a:
@@ -33,7 +32,7 @@ if mode == "性价比比较":
             jade_attr_percent = st.number_input(
                 "升级玉石提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=1.5, 
+                value=1, 
                 step=0.1,
                 format="%.1f",
                 help="每次升级玉石提升的单兵种属性百分比"
@@ -50,17 +49,18 @@ if mode == "性价比比较":
             horse_attr_percent = st.number_input(
                 "升级马具提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=1.5, 
+                value=0.25, 
                 step=0.1,
-                format="%.1f",
+                format="%.2f",
                 help="每次升级马具提升的全阵营属性百分比"
             )
         
         conversion_factor = st.number_input(
             "一点全阵营属性 = 多少点单兵种属性", 
             min_value=0.0, 
-            value=1.0, 
-            step=0.1,
+            value=1.825, 
+            step=0.01,
+            format="%.3f",
             help="将全阵营属性折算为单兵种属性的系数"
         )
         
