@@ -3,7 +3,7 @@ import pandas as pd
 
 # ============= Streamlit 网页应用 =============
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
-st.title("⚔️💎 神兵玉石自动升级计算器-蜀道奇谋")
+st.title("⚔️💎 神兵玉石自动升级计算器-春风御鸢行")
 st.info("""
 1、点击左上角双箭头填写积分和材料数量  
 2、选择步兵比弓兵神兵玉石高多少级（默认神兵5级玉石2级）  
@@ -44,11 +44,11 @@ with st.sidebar:
     CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=0, step=1)
     
     st.subheader("兑换比例")
-    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.417, step=0.1, format="%.3f")
-    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=8.34, step=0.1, format="%.2f")
-    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=25.0, step=0.1, format="%.2f")
-    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=125.0, step=1.0, format="%.2f")
-    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=25.0, step=0.1, format="%.2f")
+    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.459, step=0.1, format="%.3f")
+    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=9.17, step=0.1, format="%.2f")
+    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=27.5, step=0.1, format="%.2f")
+    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=137.5, step=1.0, format="%.2f")
+    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=27.5, step=0.1, format="%.2f")
     
     st.subheader("等级差设置")
     st.caption("步兵等级比弓兵高多少级？")
