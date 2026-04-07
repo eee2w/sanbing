@@ -75,11 +75,10 @@ if mode == "性价比比较":
                 st.success(f"计算结果：**1个琢玉刀 ≈ {knife_to_buckle:.2f} 个铜扣**")
                 
                 st.info("春风御鸢行推荐1刀<2.5铜扣时兑换铜扣（即1琢玉刀=0-2.5铜扣）")
-                
                 with st.expander("查看计算过程"):
                     st.markdown(f"""
-                    - 玉石：消耗 **{jade_knife_cost}** 个琢玉刀 → 提升 **{jade_attr_percent}%** 单兵种属性  
-                      每琢玉刀属性提升 = {jade_attr_percent}*2% / {jade_knife_cost} = **{jade_attr_percent/jade_knife_cost:.4f}%**  
+                    - 玉石：消耗 **{jade_knife_cost}** 个琢玉刀 → 提升 **{jade_attr_percent}*2%** 单兵种属性  
+                      每琢玉刀属性提升 = {jade_attr_percent}*2% / {jade_knife_cost} = **{jade_attr_percent*2/jade_knife_cost:.4f}%**  
                     - 马具：消耗 **{horse_buckle_cost}** 个铜扣（按4倍实际消耗 **{actual_buckle_cost}** 个铜扣）→ 提升 **{horse_attr_percent}%** 全阵营属性  
                       折算为单兵种属性 = {horse_attr_percent}% × {conversion_factor} = **{horse_attr_percent * conversion_factor:.4f}%**  
                       每铜扣属性提升 = {horse_attr_percent * conversion_factor:.4f}% / {actual_buckle_cost} = **{horse_attr_percent * conversion_factor / actual_buckle_cost:.4f}%**  
