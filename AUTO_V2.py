@@ -74,12 +74,7 @@ if mode == "性价比比较":
                 
                 st.success(f"计算结果：**1个琢玉刀 ≈ {knife_to_buckle:.2f} 个铜扣**")
                 
-                if knife_to_buckle > 1:
-                    st.info(f"💡 琢玉刀比铜扣更划算（1个琢玉刀相当于 {knife_to_buckle:.2f} 个铜扣），使用琢玉刀升级玉石性价比更高。")
-                elif knife_to_buckle < 1:
-                    st.info(f"💡 铜扣比琢玉刀更划算（1个琢玉刀仅相当于 {knife_to_buckle:.2f} 个铜扣），使用铜扣升级马具性价比更高。")
-                else:
-                    st.info("💡 琢玉刀和铜扣性价比相同。")
+                st.info("春风御鸢行推荐1刀<2.5铜扣时兑换铜扣（即1琢玉刀=0-2.5铜扣）")
                 
                 with st.expander("查看计算过程"):
                     st.markdown(f"""
