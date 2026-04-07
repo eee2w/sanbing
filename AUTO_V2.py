@@ -8,16 +8,18 @@ st.title("⚔️💎 神兵玉石自动升级计算器-春风御鸢行")
 # --- 模式选择（三选一）---
 mode = st.radio(
     "选择功能模式:",
-    ["详细版 (分别设置上下)", "简略版 (统一设置)", "刀子铜扣性价比比较"],
+    ["详细版 (分别设置上下)", "简略版 (统一设置)", "性价比比较"],
     horizontal=True
 )
 
 # ========== 性价比比较模式 ==========
 if mode == "性价比比较":
+    st.info("🔍 独立性价比比较模块：比较琢玉刀与铜扣的性价比，不涉及神兵玉石升级计算。")
     st.markdown("---")
     
     st.header("🔍 琢玉刀 vs 铜扣 性价比比较")
     with st.expander("点击展开，比较琢玉刀与铜扣的性价比", expanded=True):
+        st.markdown("根据升级玉石和马具的资源消耗及属性提升，计算一个琢玉刀相当于几个铜扣。")
         
         col_a, col_b = st.columns(2)
         with col_a:
@@ -26,12 +28,12 @@ if mode == "性价比比较":
                 min_value=1, 
                 value=1, 
                 step=1,
-                help="点一下升级消耗的琢玉刀数量"
+                help="每次升级玉石需要消耗的琢玉刀个数"
             )
             jade_attr_percent = st.number_input(
                 "升级玉石提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=1, 
+                value=1.5, 
                 step=0.1,
                 format="%.1f",
                 help="每次升级玉石提升的单兵种属性百分比"
@@ -39,7 +41,7 @@ if mode == "性价比比较":
         
         with col_b:
             horse_buckle_cost = st.number_input(
-                "点一下升级消耗的铜扣数量", 
+                "升级马具消耗的铜扣数量", 
                 min_value=1, 
                 value=1, 
                 step=1,
@@ -48,18 +50,17 @@ if mode == "性价比比较":
             horse_attr_percent = st.number_input(
                 "升级马具提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=0.25, 
+                value=1.5, 
                 step=0.1,
-                format="%.2f",
+                format="%.1f",
                 help="每次升级马具提升的全阵营属性百分比"
             )
         
         conversion_factor = st.number_input(
             "一点全阵营属性 = 多少点单兵种属性", 
             min_value=0.0, 
-            value=1.825, 
+            value=1.0, 
             step=0.1,
-            format="%.3f",
             help="将全阵营属性折算为单兵种属性的系数"
         )
         
