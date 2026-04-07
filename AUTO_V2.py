@@ -70,7 +70,7 @@ if mode == "性价比比较":
             if horse_attr_percent * conversion_factor == 0:
                 st.error("马具提升属性百分比或折算系数不能为0！")
             else:
-                knife_to_buckle = (jade_attr_percent * actual_buckle_cost) / (jade_knife_cost * horse_attr_percent * conversion_factor)
+                knife_to_buckle = (jade_attr_percent *2* actual_buckle_cost) / (jade_knife_cost * horse_attr_percent * conversion_factor)
                 
                 st.success(f"计算结果：**1个琢玉刀 ≈ {knife_to_buckle:.2f} 个铜扣**")
                 
@@ -79,7 +79,7 @@ if mode == "性价比比较":
                 with st.expander("查看计算过程"):
                     st.markdown(f"""
                     - 玉石：消耗 **{jade_knife_cost}** 个琢玉刀 → 提升 **{jade_attr_percent}%** 单兵种属性  
-                      每琢玉刀属性提升 = {jade_attr_percent}% / {jade_knife_cost} = **{jade_attr_percent/jade_knife_cost:.4f}%**  
+                      每琢玉刀属性提升 = {jade_attr_percent}*2% / {jade_knife_cost} = **{jade_attr_percent/jade_knife_cost:.4f}%**  
                     - 马具：消耗 **{horse_buckle_cost}** 个铜扣（按4倍实际消耗 **{actual_buckle_cost}** 个铜扣）→ 提升 **{horse_attr_percent}%** 全阵营属性  
                       折算为单兵种属性 = {horse_attr_percent}% × {conversion_factor} = **{horse_attr_percent * conversion_factor:.4f}%**  
                       每铜扣属性提升 = {horse_attr_percent * conversion_factor:.4f}% / {actual_buckle_cost} = **{horse_attr_percent * conversion_factor / actual_buckle_cost:.4f}%**  
