@@ -3,7 +3,7 @@ import pandas as pd
 
 # ============= Streamlit 网页应用 =============
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
-st.title("⚔️💎 神兵玉石自动升级计算器-新春版")
+st.title("⚔️💎 神兵玉石自动升级计算器-春风御鸢行")
 
 # --- 模式选择（三选一）---
 mode = st.radio(
@@ -33,7 +33,7 @@ if mode == "性价比比较":
             jade_attr_percent = st.number_input(
                 "升级玉石提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=1.0, 
+                value=1.5, 
                 step=0.1,
                 format="%.1f",
                 help="每次升级玉石提升的单兵种属性百分比"
@@ -50,18 +50,17 @@ if mode == "性价比比较":
             horse_attr_percent = st.number_input(
                 "升级马具提升的属性百分比 (%)", 
                 min_value=0.0, 
-                value=0.25, 
-                step=0.10,
-                format="%.2f",
+                value=1.5, 
+                step=0.1,
+                format="%.1f",
                 help="每次升级马具提升的全阵营属性百分比"
             )
         
         conversion_factor = st.number_input(
             "一点全阵营属性 = 多少点单兵种属性", 
             min_value=0.0, 
-            value=1.825, 
+            value=1.0, 
             step=0.1,
-            format="%.3f",
             help="将全阵营属性折算为单兵种属性的系数"
         )
         
@@ -102,14 +101,19 @@ st.info("""
 2、选择步兵比弓兵神兵玉石高多少级（默认神兵5级玉石2级）  
 3、设置玉石等级是神兵等级百分比（默认40%）  
 4、选择目前步兵弓兵上下神兵玉石等级  
-5、点击计算得到结果  
+5、点击计算得到结果 
+
+建议先把汉白玉换完，后面会加入比较铜扣和刀子性价比的功能
 """)
 st.markdown("---")
 
+# 根据 mode 显示提示（此时 mode 只能是详细版或简略版）
 if mode == "详细版 (分别设置上下)":
     st.info("详细版：设置每一个神兵玉石等级")
 else:
-    st.info("简略版：每个兵种的神兵上下相同，玉石8个相同。计算结果为上下全部加起来的总消耗")
+    st.info("""
+    简略版：每个兵种的神兵上下相同，玉石8个相同。计算结果为上下全部加起来的总消耗
+    """)
 
 st.markdown("---")
 
@@ -130,11 +134,11 @@ with st.sidebar:
     CURRENT_UNPOLISHED_JADE = st.number_input("璞玉数量", min_value=0, value=0, step=1)
     
     st.subheader("兑换比例")
-    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.084, step=0.1, format="%.3f")
-    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=1.67, step=0.1, format="%.2f")
-    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=5.0, step=0.1, format="%.2f")
-    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=25.0, step=1.0, format="%.2f")
-    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=5.0, step=0.1, format="%.2f")
+    POINTS_PER_WOOD = st.number_input("木头兑换比例", min_value=0.0, value=0.459, step=0.1, format="%.3f")
+    POINTS_PER_MITHRIL = st.number_input("精金兑换比例", min_value=0.0, value=9.17, step=0.1, format="%.2f")
+    POINTS_PER_LAPIS = st.number_input("青金石兑换比例", min_value=0.0, value=27.5, step=0.1, format="%.2f")
+    POINTS_PER_CARVING_KNIFE = st.number_input("琢玉刀兑换比例", min_value=0.0, value=137.5, step=1.0, format="%.2f")
+    POINTS_PER_UNPOLISHED_JADE = st.number_input("璞玉兑换比例", min_value=0.0, value=27.5, step=0.1, format="%.2f")
     
     st.subheader("等级差设置")
     st.caption("步兵等级比弓兵高多少级？")
@@ -264,6 +268,7 @@ else:  # 简略版
     st.header("🎯 当前等级设置 - 简略版")
     st.caption("每个兵种的神兵上下相同，玉石8个相同")
     
+    # 定义等级选项
     weapon_level_options = ["未拥有"] + [f"绿色{i}级" for i in range(1, 6)] + [f"蓝色{i}级" for i in range(1, 6)] + [f"紫色{i}级" for i in range(1, 11)] + [f"红色{i}级" for i in range(1, 31)]
     jade_level_options = list(range(0, 26))
     
@@ -276,8 +281,11 @@ else:  # 简略版
         foot_jade = st.selectbox("玉石等级", options=jade_level_options, index=0, 
                                 key="foot_jade_simple")
         
+        # 存储神兵数据（上下相同）
         WEAPONS["步兵上"] = {"current": foot_weapon, "type": "foot"}
         WEAPONS["步兵下"] = {"current": foot_weapon, "type": "foot"}
+        
+        # 存储玉石数据（8个相同）
         for i in range(1, 5):
             JADES[f"步兵上{i}"] = {"current": foot_jade, "type": "foot"}
             JADES[f"步兵下{i}"] = {"current": foot_jade, "type": "foot"}
@@ -289,17 +297,21 @@ else:  # 简略版
         archer_jade = st.selectbox("玉石等级", options=jade_level_options, index=0, 
                                   key="archer_jade_simple")
         
+        # 存储神兵数据（上下相同）
         WEAPONS["弓兵上"] = {"current": archer_weapon, "type": "archer"}
         WEAPONS["弓兵下"] = {"current": archer_weapon, "type": "archer"}
+        
+        # 存储玉石数据（8个相同）
         for i in range(1, 5):
             JADES[f"弓兵上{i}"] = {"current": archer_jade, "type": "archer"}
             JADES[f"弓兵下{i}"] = {"current": archer_jade, "type": "archer"}
 
 st.markdown("---")
 
-# ===== 其他兑换模块 =====
-st.header("🛒 其他兑换 (消耗积分)")
+# ===== 新增：其他兑换模块 =====
+st.header("🛒 其他兑换")
 
+# 初始化行数
 if 'other_rows' not in st.session_state:
     st.session_state.other_rows = 0
 
@@ -320,6 +332,7 @@ cols[0].markdown("**物品名称**")
 cols[1].markdown("**单次兑换需要积分**")
 cols[2].markdown("**兑换次数**")
 
+# 循环显示每一行
 for i in range(st.session_state.other_rows):
     cols = st.columns([3, 1, 1])
     with cols[0]:
@@ -330,6 +343,7 @@ for i in range(st.session_state.other_rows):
         st.number_input("", key=f"other_times_{i}", min_value=1, value=1, step=1, format="%d", label_visibility="collapsed")
 
 st.markdown("---")
+# ===== 其他兑换模块结束 =====
 
 # --- 3. 核心数据与计算器类 ---
 WEAPON_UPGRADE_COSTS = [
@@ -379,7 +393,7 @@ class AutoUpgradeCalculator:
         self.jade_level_diff = JADE_LEVEL_DIFF
         
         # 玉石百分比设置
-        self.jade_percentage = JADE_PERCENTAGE / 100.0
+        self.jade_percentage = JADE_PERCENTAGE / 100.0  # 转换为小数
         
         # 版本类型
         self.version_type = version_type
@@ -391,8 +405,10 @@ class AutoUpgradeCalculator:
     def level_str_to_number(self, level_str):
         """将颜色等级字符串转换为数字等级"""
         level_str = level_str.strip()
+        
         if level_str == "未拥有":
             return 0
+        
         if "绿色" in level_str:
             level_num = int(level_str.replace("绿色", "").replace("级", ""))
             if 1 <= level_num <= 5:
@@ -409,9 +425,11 @@ class AutoUpgradeCalculator:
             level_num = int(level_str.replace("红色", "").replace("级", ""))
             if 1 <= level_num <= 30:
                 return level_num + 20
+        
         return 0
     
     def level_number_to_str(self, level_num):
+        """将数字等级转换为颜色等级字符串"""
         if level_num == 0:
             return "未拥有"
         elif 1 <= level_num <= 5:
@@ -426,12 +444,15 @@ class AutoUpgradeCalculator:
             return "未知等级"
     
     def calculate_upgrade_cost(self, current_level, target_level, cost_type="weapon"):
+        """计算从当前等级升级到目标等级所需材料"""
         if target_level <= current_level:
             if cost_type == "weapon":
                 return {"wood": 0, "mithril": 0, "lapis": 0}
             else:
                 return {"knife": 0, "jade": 0}
+        
         total_cost = {"wood": 0, "mithril": 0, "lapis": 0} if cost_type == "weapon" else {"knife": 0, "jade": 0}
+        
         for level in range(current_level, target_level):
             if cost_type == "weapon" and level < len(self.weapon_upgrade_costs):
                 cost_wood, cost_mithril, cost_lapis = self.weapon_upgrade_costs[level]
@@ -442,21 +463,27 @@ class AutoUpgradeCalculator:
                 cost_knife, cost_jade = self.jade_upgrade_costs[level]
                 total_cost["knife"] += cost_knife
                 total_cost["jade"] += cost_jade
+        
         return total_cost
     
     def get_min_levels(self, weapon_nums, jade_nums):
+        """获取每个兵种的神兵和玉石最低等级"""
+        # 步兵神兵最低等级
         foot_weapon_keys = [k for k in weapon_nums.keys() if "步兵" in k]
         foot_weapon_levels = [weapon_nums[k] for k in foot_weapon_keys]
         foot_weapon_min = min(foot_weapon_levels) if foot_weapon_levels else 0
         
+        # 弓兵神兵最低等级
         archer_weapon_keys = [k for k in weapon_nums.keys() if "弓兵" in k]
         archer_weapon_levels = [weapon_nums[k] for k in archer_weapon_keys]
         archer_weapon_min = min(archer_weapon_levels) if archer_weapon_levels else 0
         
+        # 步兵玉石最低等级
         foot_jade_keys = [k for k in jade_nums.keys() if "步兵" in k]
         foot_jade_levels = [jade_nums[k] for k in foot_jade_keys]
         foot_jade_min = min(foot_jade_levels) if foot_jade_levels else 0
         
+        # 弓兵玉石最低等级
         archer_jade_keys = [k for k in jade_nums.keys() if "弓兵" in k]
         archer_jade_levels = [jade_nums[k] for k in archer_jade_keys]
         archer_jade_min = min(archer_jade_levels) if archer_jade_levels else 0
@@ -469,10 +496,20 @@ class AutoUpgradeCalculator:
         }
     
     def calculate_normalized_levels(self, min_levels):
+        """计算归一化等级（修改后的方法）"""
+        # 将神兵等级转换为等效玉石等级
+        # 公式：等效玉石等级 = 神兵等级 × 百分比
         foot_weapon_norm = min_levels["foot_weapon_min"] * self.jade_percentage
+        
+        # 弓兵神兵加上等级差
         archer_weapon_norm = (min_levels["archer_weapon_min"] + self.weapon_level_diff) * self.jade_percentage
+        
+        # 玉石等级直接使用（已经是玉石等级）
         foot_jade_norm = min_levels["foot_jade_min"]
+        
+        # 弓兵玉石加上等级差
         archer_jade_norm = min_levels["archer_jade_min"] + self.jade_level_diff
+        
         return {
             "foot_weapon_norm": foot_weapon_norm,
             "archer_weapon_norm": archer_weapon_norm,
@@ -481,15 +518,23 @@ class AutoUpgradeCalculator:
         }
     
     def find_item_to_upgrade(self, weapon_nums, jade_nums, normalized_levels):
+        """根据归一化等级找出需要升级的项目"""
+        # 找到归一化等级最小的项目
         min_norm = float('inf')
-        upgrade_type = None
+        upgrade_type = None  # 'foot_weapon_norm', 'archer_weapon_norm', 'foot_jade_norm', 'archer_jade_norm'
+        
         for norm_type, norm_value in normalized_levels.items():
             if norm_value < min_norm:
                 min_norm = norm_value
                 upgrade_type = norm_type
+        
+        # 根据项目类型找到具体要升级的物品
         item_name = None
         is_weapon = False
+        
+        # 注意：upgrade_type 是 "foot_weapon_norm" 这样的字符串
         if upgrade_type == "foot_weapon_norm":
+            # 找到步兵中等级最低的神兵
             foot_weapon_keys = [k for k in weapon_nums.keys() if "步兵" in k]
             min_level = min([weapon_nums[k] for k in foot_weapon_keys])
             for k in foot_weapon_keys:
@@ -497,7 +542,9 @@ class AutoUpgradeCalculator:
                     item_name = k
                     break
             is_weapon = True
+            
         elif upgrade_type == "archer_weapon_norm":
+            # 找到弓兵中等级最低的神兵
             archer_weapon_keys = [k for k in weapon_nums.keys() if "弓兵" in k]
             min_level = min([weapon_nums[k] for k in archer_weapon_keys])
             for k in archer_weapon_keys:
@@ -505,7 +552,9 @@ class AutoUpgradeCalculator:
                     item_name = k
                     break
             is_weapon = True
+            
         elif upgrade_type == "foot_jade_norm":
+            # 找到步兵中等级最低的玉石
             foot_jade_keys = [k for k in jade_nums.keys() if "步兵" in k]
             min_level = min([jade_nums[k] for k in foot_jade_keys])
             for k in foot_jade_keys:
@@ -513,7 +562,9 @@ class AutoUpgradeCalculator:
                     item_name = k
                     break
             is_weapon = False
+            
         elif upgrade_type == "archer_jade_norm":
+            # 找到弓兵中等级最低的玉石
             archer_jade_keys = [k for k in jade_nums.keys() if "弓兵" in k]
             min_level = min([jade_nums[k] for k in archer_jade_keys])
             for k in archer_jade_keys:
@@ -521,9 +572,12 @@ class AutoUpgradeCalculator:
                     item_name = k
                     break
             is_weapon = False
+        
         return item_name, is_weapon, upgrade_type
     
     def find_max_levels(self):
+        """按照新逻辑寻找在当前资源下能达到的最高等级"""
+        # 初始化结果
         result = {
             "upgraded": False,
             "weapon_targets": {},
@@ -535,6 +589,7 @@ class AutoUpgradeCalculator:
             "points_left": self.current_points
         }
         
+        # 初始化当前资源副本
         points_left = self.current_points
         current_wood = self.current_wood
         current_mithril = self.current_mithril
@@ -542,6 +597,7 @@ class AutoUpgradeCalculator:
         current_carving_knife = self.current_carving_knife
         current_unpolished_jade = self.current_unpolished_jade
         
+        # 将当前等级转换为数字并存储
         weapon_current_nums = {}
         for weapon_name, weapon_info in self.weapons.items():
             weapon_current_nums[weapon_name] = self.level_str_to_number(weapon_info["current"])
@@ -550,98 +606,190 @@ class AutoUpgradeCalculator:
         for jade_name, jade_info in self.jades.items():
             jade_current_nums[jade_name] = jade_info["current"]
         
+        # 目标等级初始化为当前等级
         weapon_target_nums = weapon_current_nums.copy()
         jade_target_nums = jade_current_nums.copy()
         
+        # 尝试升级
         upgraded = False
-        total_points_used = 0
-        upgrade_history = []
-        failed_upgrade_types = set()
-        materials_used = {"wood": 0, "mithril": 0, "lapis": 0, "knife": 0, "jade": 0}
-        materials_to_buy = {"wood_need_buy": 0, "mithril_need_buy": 0, "lapis_need_buy": 0, "knife_need_buy": 0, "jade_need_buy": 0}
         
-        max_iterations = 100
+        total_points_used = 0  # 总共使用的积分
+        
+        # 记录升级历史
+        upgrade_history = []
+        
+        # 用于记录无法升级的项目类型
+        failed_upgrade_types = set()
+        
+        # 记录使用的库存材料
+        materials_used = {
+            "wood": 0,
+            "mithril": 0,
+            "lapis": 0,
+            "knife": 0,
+            "jade": 0
+        }
+        
+        # 记录需要购买的材料
+        materials_to_buy = {
+            "wood_need_buy": 0,
+            "mithril_need_buy": 0,
+            "lapis_need_buy": 0,
+            "knife_need_buy": 0,
+            "jade_need_buy": 0
+        }
+        
+        # 开始循环升级
+        max_iterations = 100  # 防止无限循环
         iteration = 0
+        
         while iteration < max_iterations:
             iteration += 1
+            
+            # 获取最低等级
             min_levels = self.get_min_levels(weapon_target_nums, jade_target_nums)
+            
+            # 计算归一化等级
             normalized_levels = self.calculate_normalized_levels(min_levels)
+            
+            # 排除已经失败的项目类型
             filtered_norms = {k: v for k, v in normalized_levels.items() if k not in failed_upgrade_types}
+            
             if not filtered_norms:
+                # 所有项目类型都失败了，退出循环
                 break
+            
+            # 找出需要升级的项目
+            # 我们需要从过滤后的归一化等级中找出最小的
             min_norm = float('inf')
             upgrade_type = None
             for norm_type, norm_value in filtered_norms.items():
                 if norm_value < min_norm:
                     min_norm = norm_value
                     upgrade_type = norm_type
+            
             if upgrade_type is None:
+                # 没有找到可升级的项目
                 break
-            item_name, is_weapon, _ = self.find_item_to_upgrade(weapon_target_nums, jade_target_nums, {upgrade_type: min_norm})
+            
+            item_name, is_weapon, found_upgrade_type = self.find_item_to_upgrade(
+                weapon_target_nums, jade_target_nums, {upgrade_type: min_norm}
+            )
+            
             if item_name is None:
+                # 没有找到具体的项目，将这个类型标记为失败
                 failed_upgrade_types.add(upgrade_type)
                 continue
+            
+            # 获取当前等级和目标等级
             if is_weapon:
                 current_num = weapon_target_nums[item_name]
                 target_num = current_num + 1
+                
+                # 检查是否达到最大等级
                 if current_num >= len(self.weapon_upgrade_costs):
+                    # 标记这个类型已达到最大等级
                     failed_upgrade_types.add(upgrade_type)
                     continue
+                
+                # 计算升级成本
                 cost = self.calculate_upgrade_cost(current_num, target_num, "weapon")
             else:
                 current_num = jade_target_nums[item_name]
                 target_num = current_num + 1
+                
+                # 检查是否达到最大等级
                 if current_num >= len(self.jade_upgrade_costs):
+                    # 标记这个类型已达到最大等级
                     failed_upgrade_types.add(upgrade_type)
                     continue
+                
+                # 计算升级成本
                 cost = self.calculate_upgrade_cost(current_num, target_num, "jade")
             
+            # 检查是否有足够的积分来升级（使用当前库存）
             if is_weapon:
+                # 神兵材料
                 wood_needed = cost.get("wood", 0)
                 mithril_needed = cost.get("mithril", 0)
                 lapis_needed = cost.get("lapis", 0)
+                
+                # 计算需要兑换的材料（使用当前库存）
                 wood_deficit = max(0, wood_needed - current_wood)
                 mithril_deficit = max(0, mithril_needed - current_mithril)
                 lapis_deficit = max(0, lapis_needed - current_lapis)
-                points_needed = (wood_deficit * self.points_per_wood +
-                                 mithril_deficit * self.points_per_mithril +
-                                 lapis_deficit * self.points_per_lapis)
+                
+                # 计算所需积分
+                points_needed = (
+                    wood_deficit * self.points_per_wood +
+                    mithril_deficit * self.points_per_mithril +
+                    lapis_deficit * self.points_per_lapis
+                )
+                
+                # 检查积分是否足够
                 if points_left < points_needed:
                     failed_upgrade_types.add(upgrade_type)
                     continue
+                
+                # 更新库存和积分
                 wood_used = min(current_wood, wood_needed)
                 mithril_used = min(current_mithril, mithril_needed)
                 lapis_used = min(current_lapis, lapis_needed)
+                
                 current_wood -= wood_used
                 current_mithril -= mithril_used
                 current_lapis -= lapis_used
+                
+                # 记录材料使用
                 materials_used["wood"] += wood_used
                 materials_used["mithril"] += mithril_used
                 materials_used["lapis"] += lapis_used
+                
+                # 记录需要购买的材料
                 materials_to_buy["wood_need_buy"] += wood_deficit
                 materials_to_buy["mithril_need_buy"] += mithril_deficit
                 materials_to_buy["lapis_need_buy"] += lapis_deficit
+                
             else:
+                # 玉石材料
                 knife_needed = cost.get("knife", 0)
                 jade_needed = cost.get("jade", 0)
+                
+                # 计算需要兑换的材料（使用当前库存）
                 knife_deficit = max(0, knife_needed - current_carving_knife)
                 jade_deficit = max(0, jade_needed - current_unpolished_jade)
-                points_needed = (knife_deficit * self.points_per_carving_knife +
-                                 jade_deficit * self.points_per_unpolished_jade)
+                
+                # 计算所需积分
+                points_needed = (
+                    knife_deficit * self.points_per_carving_knife +
+                    jade_deficit * self.points_per_unpolished_jade
+                )
+                
+                # 检查积分是否足够
                 if points_left < points_needed:
                     failed_upgrade_types.add(upgrade_type)
                     continue
+                
+                # 更新库存和积分
                 knife_used = min(current_carving_knife, knife_needed)
                 jade_used = min(current_unpolished_jade, jade_needed)
+                
                 current_carving_knife -= knife_used
                 current_unpolished_jade -= jade_used
+                
+                # 记录材料使用
                 materials_used["knife"] += knife_used
                 materials_used["jade"] += jade_used
+                
+                # 记录需要购买的材料
                 materials_to_buy["knife_need_buy"] += knife_deficit
                 materials_to_buy["jade_need_buy"] += jade_deficit
             
+            # 扣除积分
             points_left -= points_needed
             total_points_used += points_needed
+            
+            # 记录升级
             upgrade_history.append({
                 "item": item_name,
                 "type": "weapon" if is_weapon else "jade",
@@ -650,28 +798,41 @@ class AutoUpgradeCalculator:
                 "cost": cost,
                 "points_needed": points_needed
             })
+            
+            # 更新目标等级
             if is_weapon:
                 weapon_target_nums[item_name] = target_num
             else:
                 jade_target_nums[item_name] = target_num
+            
             upgraded = True
         
         if not upgraded:
             return result
         
-        total_wood_needed = total_mithril_needed = total_lapis_needed = total_knife_needed = total_jade_needed = 0
+        # 计算总消耗
+        total_wood_needed = 0
+        total_mithril_needed = 0
+        total_lapis_needed = 0
+        total_knife_needed = 0
+        total_jade_needed = 0
+        
+        # 神兵消耗
         for weapon_name, current_num in weapon_current_nums.items():
             target_num = weapon_target_nums[weapon_name]
             cost = self.calculate_upgrade_cost(current_num, target_num, "weapon")
             total_wood_needed += cost["wood"]
             total_mithril_needed += cost["mithril"]
             total_lapis_needed += cost["lapis"]
+        
+        # 玉石消耗
         for jade_name, current_num in jade_current_nums.items():
             target_num = jade_target_nums[jade_name]
             cost = self.calculate_upgrade_cost(current_num, target_num, "jade")
             total_knife_needed += cost["knife"]
             total_jade_needed += cost["jade"]
         
+        # 合并所有材料需求
         total_materials_needed = {
             "wood": total_wood_needed,
             "mithril": total_mithril_needed,
@@ -679,6 +840,8 @@ class AutoUpgradeCalculator:
             "knife": total_knife_needed,
             "jade": total_jade_needed
         }
+        
+        # 计算升级后剩余材料
         materials_left = {
             "wood": current_wood,
             "mithril": current_mithril,
@@ -686,6 +849,8 @@ class AutoUpgradeCalculator:
             "knife": current_carving_knife,
             "jade": current_unpolished_jade
         }
+        
+        # 计算玉石百分比实际值
         min_levels_final = self.get_min_levels(weapon_target_nums, jade_target_nums)
         foot_actual_percentage = (min_levels_final["foot_jade_min"] / min_levels_final["foot_weapon_min"] * 100) if min_levels_final["foot_weapon_min"] > 0 else 0
         archer_actual_percentage = (min_levels_final["archer_jade_min"] / min_levels_final["archer_weapon_min"] * 100) if min_levels_final["archer_weapon_min"] > 0 else 0
@@ -710,12 +875,14 @@ class AutoUpgradeCalculator:
             "archer_actual_percentage": archer_actual_percentage,
             "upgrade_history": upgrade_history
         }
+        
         return result
 
 # --- 4. 计算并展示结果 ---
 st.header("🚀 自动升级计算（兑换一次可能得到多个材料，尤其是木头）")
 
 if st.button("开始自动计算最佳升级方案", type="primary", use_container_width=True):
+    # 先计算其他兑换总积分
     other_total = 0
     for i in range(st.session_state.other_rows):
         cost = st.session_state.get(f"other_cost_{i}", 0.0)
@@ -727,8 +894,8 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
     else:
         remaining_points = CURRENT_POINTS - other_total
         with st.spinner("正在计算最佳升级方案..."):
-            calculator = AutoUpgradeCalculator(mode, WEAPONS, JADES)
-            calculator.current_points = remaining_points
+            calculator = AutoUpgradeCalculator(mode, WEAPONS, JADES)  # 注意：这里传入 mode 作为版本类型
+            calculator.current_points = remaining_points  # 使用扣除后的剩余积分
             result = calculator.find_max_levels()
         
         if not result["upgraded"]:
@@ -736,51 +903,95 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
             st.info(f"💰 积分概览：当前总积分 {CURRENT_POINTS}，其他兑换消耗 {other_total:.1f}，剩余积分 {remaining_points:.1f}")
         else:
             st.success("计算完成！")
+            
+            # 显示结果总览
             st.subheader("🎯 最佳升级方案")
             
             if mode == "详细版 (分别设置上下)":
+                # 详细版显示方式
                 cols = st.columns(4)
-                with cols[0]:
-                    st.metric("步兵神兵上", f"{calculator.level_number_to_str(result['weapon_targets']['步兵上'])}", f"升级{result['weapon_targets']['步兵上'] - result['weapon_currents']['步兵上']}级")
-                with cols[1]:
-                    st.metric("步兵神兵下", f"{calculator.level_number_to_str(result['weapon_targets']['步兵下'])}", f"升级{result['weapon_targets']['步兵下'] - result['weapon_currents']['步兵下']}级")
-                with cols[2]:
-                    st.metric("弓兵神兵上", f"{calculator.level_number_to_str(result['weapon_targets']['弓兵上'])}", f"升级{result['weapon_targets']['弓兵上'] - result['weapon_currents']['弓兵上']}级")
-                with cols[3]:
-                    st.metric("弓兵神兵下", f"{calculator.level_number_to_str(result['weapon_targets']['弓兵下'])}", f"升级{result['weapon_targets']['弓兵下'] - result['weapon_currents']['弓兵下']}级")
                 
+                with cols[0]:
+                    st.metric("步兵神兵上", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['步兵上'])}",
+                             f"升级{result['weapon_targets']['步兵上'] - result['weapon_currents']['步兵上']}级")
+                
+                with cols[1]:
+                    st.metric("步兵神兵下", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['步兵下'])}",
+                             f"升级{result['weapon_targets']['步兵下'] - result['weapon_currents']['步兵下']}级")
+                
+                with cols[2]:
+                    st.metric("弓兵神兵上", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['弓兵上'])}",
+                             f"升级{result['weapon_targets']['弓兵上'] - result['weapon_currents']['弓兵上']}级")
+                
+                with cols[3]:
+                    st.metric("弓兵神兵下", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['弓兵下'])}",
+                             f"升级{result['weapon_targets']['弓兵下'] - result['weapon_currents']['弓兵下']}级")
+                
+                # 玉石结果
                 st.subheader("💎 玉石升级结果")
+                
+                # 步兵玉石
                 st.markdown("**步兵玉石**")
                 foot_jade_cols = st.columns(8)
                 for i in range(1, 5):
                     with foot_jade_cols[i-1]:
-                        st.metric(f"上{i}", f"{result['jade_targets'][f'步兵上{i}']}级", f"+{result['jade_targets'][f'步兵上{i}'] - result['jade_currents'][f'步兵上{i}']}")
+                        st.metric(f"上{i}", 
+                                 f"{result['jade_targets'][f'步兵上{i}']}级",
+                                 f"+{result['jade_targets'][f'步兵上{i}'] - result['jade_currents'][f'步兵上{i}']}")
+                
                 for i in range(1, 5):
                     with foot_jade_cols[i+3]:
-                        st.metric(f"下{i}", f"{result['jade_targets'][f'步兵下{i}']}级", f"+{result['jade_targets'][f'步兵下{i}'] - result['jade_currents'][f'步兵下{i}']}")
+                        st.metric(f"下{i}", 
+                                 f"{result['jade_targets'][f'步兵下{i}']}级",
+                                 f"+{result['jade_targets'][f'步兵下{i}'] - result['jade_currents'][f'步兵下{i}']}")
                 
+                # 弓兵玉石
                 st.markdown("**弓兵玉石**")
                 archer_jade_cols = st.columns(8)
                 for i in range(1, 5):
                     with archer_jade_cols[i-1]:
-                        st.metric(f"上{i}", f"{result['jade_targets'][f'弓兵上{i}']}级", f"+{result['jade_targets'][f'弓兵上{i}'] - result['jade_currents'][f'弓兵上{i}']}")
+                        st.metric(f"上{i}", 
+                                 f"{result['jade_targets'][f'弓兵上{i}']}级",
+                                 f"+{result['jade_targets'][f'弓兵上{i}'] - result['jade_currents'][f'弓兵上{i}']}")
+                
                 for i in range(1, 5):
                     with archer_jade_cols[i+3]:
-                        st.metric(f"下{i}", f"{result['jade_targets'][f'弓兵下{i}']}级", f"+{result['jade_targets'][f'弓兵下{i}'] - result['jade_currents'][f'弓兵下{i}']}")
+                        st.metric(f"下{i}", 
+                                 f"{result['jade_targets'][f'弓兵下{i}']}级",
+                                 f"+{result['jade_targets'][f'弓兵下{i}'] - result['jade_currents'][f'弓兵下{i}']}")
             
             else:  # 简略版
                 col1, col2 = st.columns(2)
+                
                 with col1:
-                    st.metric("步兵神兵", f"{calculator.level_number_to_str(result['weapon_targets']['步兵上'])}", f"升级{result['weapon_targets']['步兵上'] - result['weapon_currents']['步兵上']}级")
+                    st.metric("步兵神兵", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['步兵上'])}",
+                             f"升级{result['weapon_targets']['步兵上'] - result['weapon_currents']['步兵上']}级")
+                    
                     st.markdown("**步兵玉石** (8个相同)")
-                    st.metric("玉石等级", f"{result['jade_targets']['步兵上1']}级", f"升级{result['jade_targets']['步兵上1'] - result['jade_currents']['步兵上1']}级")
+                    st.metric("玉石等级", 
+                             f"{result['jade_targets']['步兵上1']}级",
+                             f"升级{result['jade_targets']['步兵上1'] - result['jade_currents']['步兵上1']}级")
+                
                 with col2:
-                    st.metric("弓兵神兵", f"{calculator.level_number_to_str(result['weapon_targets']['弓兵上'])}", f"升级{result['weapon_targets']['弓兵上'] - result['weapon_currents']['弓兵上']}级")
+                    st.metric("弓兵神兵", 
+                             f"{calculator.level_number_to_str(result['weapon_targets']['弓兵上'])}",
+                             f"升级{result['weapon_targets']['弓兵上'] - result['weapon_currents']['弓兵上']}级")
+                    
                     st.markdown("**弓兵玉石** (8个相同)")
-                    st.metric("玉石等级", f"{result['jade_targets']['弓兵上1']}级", f"升级{result['jade_targets']['弓兵上1'] - result['jade_currents']['弓兵上1']}级")
+                    st.metric("玉石等级", 
+                             f"{result['jade_targets']['弓兵上1']}级",
+                             f"升级{result['jade_targets']['弓兵上1'] - result['jade_currents']['弓兵上1']}级")
             
             st.markdown("---")
+            
+            # 积分使用情况（新增其他兑换列）
             st.subheader("💰 积分使用情况")
+            
             points_col1, points_col2, points_col3, points_col4 = st.columns(4)
             with points_col1:
                 st.metric("当前总积分", f"{CURRENT_POINTS}")
@@ -791,48 +1002,95 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
             with points_col4:
                 st.metric("最终剩余积分", f"{result['points_left']:.1f}")
             
+            # 材料使用情况
             st.subheader("📦 材料使用情况")
+            
             with st.expander("详细材料消耗", expanded=True):
                 tab1, tab2 = st.tabs(["神兵材料", "玉石材料"])
+                
                 with tab1:
                     mat1, mat2, mat3 = st.columns(3)
                     with mat1:
-                        st.metric("木头", f"需要: {result['materials_needed'].get('wood', 0)}", f"使用库存: {result['materials_used'].get('wood', 0)}")
+                        st.metric("木头", 
+                                 f"需要: {result['materials_needed'].get('wood', 0)}",
+                                 f"使用库存: {result['materials_used'].get('wood', 0)}")
                     with mat2:
-                        st.metric("精金", f"需要: {result['materials_needed'].get('mithril', 0)}", f"使用库存: {result['materials_used'].get('mithril', 0)}")
+                        st.metric("精金", 
+                                 f"需要: {result['materials_needed'].get('mithril', 0)}",
+                                 f"使用库存: {result['materials_used'].get('mithril', 0)}")
                     with mat3:
-                        st.metric("青金石", f"需要: {result['materials_needed'].get('lapis', 0)}", f"使用库存: {result['materials_used'].get('lapis', 0)}")
+                        st.metric("青金石", 
+                                 f"需要: {result['materials_needed'].get('lapis', 0)}",
+                                 f"使用库存: {result['materials_used'].get('lapis', 0)}")
+                
                 with tab2:
                     mat4, mat5 = st.columns(2)
                     with mat4:
-                        st.metric("琢玉刀", f"需要: {result['materials_needed'].get('knife', 0)}", f"使用库存: {result['materials_used'].get('knife', 0)}")
+                        st.metric("琢玉刀", 
+                                 f"需要: {result['materials_needed'].get('knife', 0)}",
+                                 f"使用库存: {result['materials_used'].get('knife', 0)}")
                     with mat5:
-                        st.metric("璞玉", f"需要: {result['materials_needed'].get('jade', 0)}", f"使用库存: {result['materials_used'].get('jade', 0)}")
+                        st.metric("璞玉", 
+                                 f"需要: {result['materials_needed'].get('jade', 0)}",
+                                 f"使用库存: {result['materials_used'].get('jade', 0)}")
+                
+                # 剩余材料
                 st.write("**剩余材料:**")
                 left_cols = st.columns(5)
-                left_materials = [("木头", result['materials_left'].get('wood', 0), "🪵"), ("精金", result['materials_left'].get('mithril', 0), "⚙️"), ("青金石", result['materials_left'].get('lapis', 0), "🔷"), ("琢玉刀", result['materials_left'].get('knife', 0), "🔪"), ("璞玉", result['materials_left'].get('jade', 0), "💎")]
+                left_materials = [
+                    ("木头", result['materials_left'].get('wood', 0), "🪵"),
+                    ("精金", result['materials_left'].get('mithril', 0), "⚙️"),
+                    ("青金石", result['materials_left'].get('lapis', 0), "🔷"),
+                    ("琢玉刀", result['materials_left'].get('knife', 0), "🔪"),
+                    ("璞玉", result['materials_left'].get('jade', 0), "💎")
+                ]
+                
                 for idx, (name, amount, icon) in enumerate(left_materials):
                     left_cols[idx].metric(f"{icon} {name}", f"{amount}个")
             
-            if any([result['materials_to_buy'].get('wood_need_buy', 0) > 0, result['materials_to_buy'].get('mithril_need_buy', 0) > 0, result['materials_to_buy'].get('lapis_need_buy', 0) > 0, result['materials_to_buy'].get('knife_need_buy', 0) > 0, result['materials_to_buy'].get('jade_need_buy', 0) > 0]):
+            # 需要兑换的材料
+            if any([result['materials_to_buy'].get('wood_need_buy', 0) > 0,
+                    result['materials_to_buy'].get('mithril_need_buy', 0) > 0,
+                    result['materials_to_buy'].get('lapis_need_buy', 0) > 0,
+                    result['materials_to_buy'].get('knife_need_buy', 0) > 0,
+                    result['materials_to_buy'].get('jade_need_buy', 0) > 0]):
+                
                 st.subheader("🛒 需要兑换的材料")
+                
                 buy_cols = st.columns(5)
-                buy_materials = [("木头", result['materials_to_buy'].get('wood_need_buy', 0), "🪵"), ("精金", result['materials_to_buy'].get('mithril_need_buy', 0), "⚙️"), ("青金石", result['materials_to_buy'].get('lapis_need_buy', 0), "🔷"), ("琢玉刀", result['materials_to_buy'].get('knife_need_buy', 0), "🔪"), ("璞玉", result['materials_to_buy'].get('jade_need_buy', 0), "💎")]
+                buy_materials = [
+                    ("木头", result['materials_to_buy'].get('wood_need_buy', 0), "🪵"),
+                    ("精金", result['materials_to_buy'].get('mithril_need_buy', 0), "⚙️"),
+                    ("青金石", result['materials_to_buy'].get('lapis_need_buy', 0), "🔷"),
+                    ("琢玉刀", result['materials_to_buy'].get('knife_need_buy', 0), "🔪"),
+                    ("璞玉", result['materials_to_buy'].get('jade_need_buy', 0), "💎")
+                ]
+                
                 for idx, (name, amount, icon) in enumerate(buy_materials):
                     if amount > 0:
                         buy_cols[idx].metric(f"{icon} {name}", f"{amount}个")
             
+            # 升级详情
             st.subheader("📋 升级详情")
+            
             with st.expander("查看升级详情表格", expanded=False):
+                # 神兵升级详情
                 st.write("**神兵升级详情:**")
                 weapon_data = []
                 for weapon_name in ["步兵上", "步兵下", "弓兵上", "弓兵下"]:
                     current_level = WEAPONS[weapon_name]["current"]
                     target_level = calculator.level_number_to_str(result['weapon_targets'][weapon_name])
                     upgrade_levels = result['weapon_targets'][weapon_name] - result['weapon_currents'][weapon_name]
-                    weapon_data.append({"神兵": weapon_name, "当前等级": current_level, "目标等级": target_level, "升级级数": upgrade_levels})
+                    
+                    weapon_data.append({
+                        "神兵": weapon_name,
+                        "当前等级": current_level,
+                        "目标等级": target_level,
+                        "升级级数": upgrade_levels
+                    })
                 st.dataframe(pd.DataFrame(weapon_data), use_container_width=True)
                 
+                # 玉石升级详情
                 st.write("**玉石升级详情:**")
                 jade_data = []
                 for jade_name in sorted(JADES.keys()):
@@ -840,14 +1098,28 @@ if st.button("开始自动计算最佳升级方案", type="primary", use_contain
                         current_level = JADES[jade_name]["current"]
                         target_level = result['jade_targets'][jade_name]
                         upgrade_levels = target_level - current_level
-                        jade_data.append({"玉石": jade_name, "当前等级": current_level, "目标等级": target_level, "升级级数": upgrade_levels})
+                        
+                        jade_data.append({
+                            "玉石": jade_name,
+                            "当前等级": current_level,
+                            "目标等级": target_level,
+                            "升级级数": upgrade_levels
+                        })
                 st.dataframe(pd.DataFrame(jade_data), use_container_width=True)
                 
+                # 升级顺序详情（可选）
                 if 'upgrade_history' in result and result['upgrade_history']:
                     st.write("**升级顺序详情:**")
                     history_data = []
                     for i, upgrade in enumerate(result['upgrade_history']):
-                        history_data.append({"序号": i+1, "升级项目": upgrade['item'], "类型": "神兵" if upgrade['type'] == 'weapon' else "玉石", "从等级": upgrade['from_level'], "到等级": upgrade['to_level'], "消耗积分": f"{upgrade['points_needed']:.1f}"})
+                        history_data.append({
+                            "序号": i+1,
+                            "升级项目": upgrade['item'],
+                            "类型": "神兵" if upgrade['type'] == 'weapon' else "玉石",
+                            "从等级": upgrade['from_level'],
+                            "到等级": upgrade['to_level'],
+                            "消耗积分": f"{upgrade['points_needed']:.1f}"
+                        })
                     st.dataframe(pd.DataFrame(history_data), use_container_width=True)
 
 st.markdown("---")
