@@ -3,7 +3,7 @@ import pandas as pd
 
 # ============= Streamlit 网页应用 =============
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
-st.title("⚔️💎 神兵玉石自动升级计算器-春风御鸢行")
+st.title("⚔️💎 神兵玉石自动升级计算器-钓鱼")
 
 # --- 模式选择（三选一）---
 mode = st.radio(
