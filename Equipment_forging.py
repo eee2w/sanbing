@@ -248,7 +248,7 @@ with tab3:
     
     st.markdown("""
     ### 专武升级规则
-    - **普通等级（0级 → 10级）**：第1级消耗50碎片，后续每级增加50碎片（固定规则）
+    - **普通等级（0级 → 10级）**：第1级消耗50碎片，后续每级增加50碎片
     - **红色等级（红5 → 红10）**：10级专武用100碎片直接升级为红5级
     """)
     
@@ -293,8 +293,7 @@ with tab3:
                 to_level = extended_levels[step_idx + 1]
                 step_details.append({
                     "升级区间": f"{from_level} → {to_level}",
-                    "所需碎片": cost,
-                    "说明": f"第{step_idx+1}次升级（固定规则）"
+                    "所需碎片": cost
                 })
             else:  # 红色等级升级步骤 (step_idx 10~15)
                 red_idx = step_idx - 10
@@ -304,8 +303,7 @@ with tab3:
                     to_level = extended_levels[step_idx + 1]
                     step_details.append({
                         "升级区间": f"{from_level} → {to_level}",
-                        "所需碎片": cost,
-                        "说明": "红色等级升级（预设值）"
+                        "所需碎片": cost
                     })
                 else:
                     # 防御性代码，理论上不会触发
