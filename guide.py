@@ -258,8 +258,7 @@ for app in apps:
 st.markdown("""
 <div class="footer-tip">
     <strong>使用提示：</strong><br>
-    1. 电脑用户直接点击即可<br>
-    2. 遇到问题请向1128-玩大蛋反馈<br>
-    3. 斗鱼关注玩机器、Machine
+    1. 遇到问题请向1128-玩大蛋反馈<br>
+    2. 斗鱼关注玩机器、Machine
 </div>
 """, unsafe_allow_html=True)
