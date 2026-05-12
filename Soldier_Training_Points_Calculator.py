@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.title("最强爆兵积分计算器")
+st.title("最强爆兵积分计算器(更新到宫2)")
 st.markdown("""  
 支持"训练""晋升"两种模式  
 点击左上角双箭头打开侧边栏即可查看不同等级士兵的训练时长与积分   
