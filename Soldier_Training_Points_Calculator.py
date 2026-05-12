@@ -131,7 +131,7 @@ with col2:
 
 col3, col4 = st.columns(2)
 with col3:
-    num_str = st.text_input("每次训练数量", value="", placeholder="1", key="num")
+    num_str = st.text_input("单次训练数量", value="", placeholder="1", key="num")
 with col4:
     duration_days_str = st.text_input("加速时长 (天)", value="", placeholder="1.0", key="duration")
 
