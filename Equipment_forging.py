@@ -243,8 +243,8 @@ with tab2:
         df,
         column_config={
             "等级": st.column_config.NumberColumn("等级"),
-            "锻造石": st.column_config.NumberColumn("锻造石"),
-            "金色装备": st.column_config.NumberColumn("金色装备")
+            "锻造石": st.column_config.NumberColumn("消耗锻造石"),
+            "金色装备": st.column_config.NumberColumn("消耗金色装备")
         },
         hide_index=True,
         use_container_width=True
