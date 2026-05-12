@@ -36,6 +36,7 @@ def create_resource_input(label):
         unit = st.selectbox(
             "单位",
             ["万", "亿"],
+            index=1,  # 默认选中“亿”（索引1）
             key=f"{label}_unit",
             label_visibility="collapsed"
         )
