@@ -48,7 +48,7 @@ if 'equipment_calculations' not in st.session_state:
 
 # 专武升级消耗函数 - 修正后的逻辑：升级消耗基于总升级次数
 def calculate_exclusive_weapon_cost(current_level, target_level):
-    """计算专武从当前等级升级到目标等级的总消耗 - 修正版"""
+    """计算专武从当前等级升级到目标等级的总消耗 - 修正版 (仅用于原始0-10级)"""
     if current_level >= target_level:
         return 0
     
@@ -243,8 +243,8 @@ with tab2:
         df,
         column_config={
             "等级": st.column_config.NumberColumn("等级"),
-            "锻造石": st.column_config.NumberColumn("消耗锻造石"),
-            "金色装备": st.column_config.NumberColumn("消耗金色装备")
+            "锻造石": st.column_config.NumberColumn("锻造石"),
+            "金色装备": st.column_config.NumberColumn("金色装备")
         },
         hide_index=True,
         use_container_width=True
@@ -253,11 +253,52 @@ with tab2:
 with tab3:
     st.header("🗡️ 专武升级")
     
-    # 专武升级说明 - 修正版
+    # 定义扩展的等级列表（0-10级 + 红5级到红10级）
+    extended_levels = [str(i) for i in range(11)] + [f"红{i}" for i in range(5, 11)]
+    
+    # 初始化红级升级所需碎片的配置（6个区间：10->红5, 红5->红6, ..., 红9->红10）
+    if "red_upgrade_costs" not in st.session_state:
+        # 默认值按递增方式设置，用户可自行修改
+        st.session_state.red_upgrade_costs = [500, 600, 700, 800, 900, 1000]
+    
+    # 创建6个数字输入框让用户自定义每个红级升级区间的碎片消耗
+    st.subheader("⚙️ 红色等级升级消耗配置（10级 → 红10级）")
+    st.markdown("请为以下每个升级区间设置所需的专武碎片数量：")
+    
+    # 定义区间名称
+    red_intervals = [
+        "10级 → 红5级",
+        "红5级 → 红6级",
+        "红6级 → 红7级",
+        "红7级 → 红8级",
+        "红8级 → 红9级",
+        "红9级 → 红10级"
+    ]
+    
+    # 使用列布局方便输入
+    cols = st.columns(3)
+    updated_costs = []
+    for i, interval in enumerate(red_intervals):
+        col = cols[i % 3]
+        with col:
+            cost = st.number_input(
+                f"{interval} 所需碎片",
+                min_value=1,
+                step=50,
+                value=st.session_state.red_upgrade_costs[i],
+                key=f"red_cost_{i}"
+            )
+            updated_costs.append(cost)
+    
+    # 如果用户修改了任何输入，更新session_state中的配置
+    if updated_costs != st.session_state.red_upgrade_costs:
+        st.session_state.red_upgrade_costs = updated_costs
+    
+    # 显示升级规则说明
     st.markdown("""
     ### 专武升级规则
-    - 专武等级范围：0级到10级
-    - 升级消耗：第一级为50碎片，后面每次升级多消耗50专武碎片
+    - **普通等级（0级 → 10级）**：第1级消耗50碎片，后续每级增加50碎片（固定规则，不可修改）
+    - **红色等级（10级 → 红10级）**：每个升级区间的消耗由上方自定义配置决定
     """)
     
     # 专武等级选择
@@ -266,51 +307,93 @@ with tab3:
     col_weapon1, col_weapon2 = st.columns(2)
     
     with col_weapon1:
-        exclusive_current_level = st.selectbox(
+        # 获取当前等级显示的索引，默认显示'0'
+        current_level_idx = st.selectbox(
             "当前等级",
-            options=list(range(0, 11)),  # 0-10
-            index=0,  # 默认为0
-            key="exclusive_weapon_current"
+            options=range(len(extended_levels)),
+            format_func=lambda x: extended_levels[x],
+            index=0,
+            key="exclusive_weapon_current_idx"
         )
+        exclusive_current_level = extended_levels[current_level_idx]
     
     with col_weapon2:
-        exclusive_target_level = st.selectbox(
+        # 获取目标等级显示的索引，默认显示'0'
+        target_level_idx = st.selectbox(
             "目标等级",
-            options=list(range(0, 11)),  # 0-10
-            index=0,  # 默认为0
-            key="exclusive_weapon_target"
+            options=range(len(extended_levels)),
+            format_func=lambda x: extended_levels[x],
+            index=0,
+            key="exclusive_weapon_target_idx"
         )
+        exclusive_target_level = extended_levels[target_level_idx]
     
-    # 计算专武升级消耗
+    # 计算专武升级消耗（内部函数，处理扩展等级和自定义红级消耗）
+    def calculate_exclusive_weapon_extended(current_idx, target_idx, red_costs):
+        """计算从当前等级索引到目标等级索引的总消耗"""
+        if current_idx >= target_idx:
+            return 0, []  # 消耗为0，且无详细步骤
+        
+        total_fragments = 0
+        step_details = []  # 每个升级区间的详细信息
+        
+        # 构建每一步的消耗列表
+        # 步骤索引 i 表示从 extended_levels[i] 升级到 extended_levels[i+1]
+        # 前10步（0-9）：对应普通等级升级（0→1, 1→2, ..., 9→10），消耗 = 50 * (i+1)
+        # 后6步（10-15）：对应红色等级升级，消耗 = 用户配置的 red_costs[0]...red_costs[5]
+        for step_idx in range(current_idx, target_idx):
+            if step_idx < 10:  # 普通等级升级步骤
+                # 第 step_idx 次升级（从0开始），消耗 = 50 * (step_idx + 1)
+                cost = 50 * (step_idx + 1)
+                from_level = extended_levels[step_idx]
+                to_level = extended_levels[step_idx + 1]
+                step_details.append({
+                    "升级区间": f"{from_level} → {to_level}",
+                    "所需碎片": cost,
+                    "说明": f"第{step_idx+1}次升级（固定规则）"
+                })
+            else:  # 红色等级升级步骤 (step_idx 10~15)
+                # 计算红色区间的索引 (0~5)
+                red_idx = step_idx - 10
+                if red_idx < len(red_costs):
+                    cost = red_costs[red_idx]
+                    from_level = extended_levels[step_idx]
+                    to_level = extended_levels[step_idx + 1]
+                    step_details.append({
+                        "升级区间": f"{from_level} → {to_level}",
+                        "所需碎片": cost,
+                        "说明": f"红色等级升级（用户自定义）"
+                    })
+                else:
+                    # 理论上不会发生，因为红色等级只有6步
+                    cost = 0
+                    step_details.append({
+                        "升级区间": f"{extended_levels[step_idx]} → {extended_levels[step_idx+1]}",
+                        "所需碎片": 0,
+                        "说明": "未配置"
+                    })
+            total_fragments += cost
+        
+        return total_fragments, step_details
+    
+    # 计算按钮
     if st.button("计算专武升级消耗", type="primary", use_container_width=True):
-        if exclusive_current_level >= exclusive_target_level:
-            st.error("目标等级必须大于当前等级!")
+        # 获取等级索引
+        current_idx = extended_levels.index(exclusive_current_level)
+        target_idx = extended_levels.index(exclusive_target_level)
+        
+        if current_idx >= target_idx:
+            st.error("目标等级必须大于当前等级！")
         else:
-            # 计算总消耗 - 修正版
-            total_fragments = calculate_exclusive_weapon_cost(
-                exclusive_current_level, 
-                exclusive_target_level
+            # 计算总消耗和详细步骤
+            total_fragments, detail_data = calculate_exclusive_weapon_extended(
+                current_idx, target_idx, st.session_state.red_upgrade_costs
             )
             
             # 保存结果到session_state
             st.session_state.weapon_calc_total_fragments = total_fragments
             st.session_state.weapon_current_level = exclusive_current_level
             st.session_state.weapon_target_level = exclusive_target_level
-            
-            # 同时计算各级消耗详情用于显示
-            detail_data = []
-            
-            for level in range(exclusive_current_level + 1, exclusive_target_level + 1):
-                fragments_needed = 50 * level
-                from_level = level - 1
-                to_level = level
-                
-                detail_data.append({
-                    "升级区间": f"{from_level} → {to_level}",
-                    "所需碎片": fragments_needed,
-                    "说明": f"第{level}次升级"
-                })
-            
             st.session_state.weapon_detail_data = detail_data
     
     # 显示专武升级计算结果
@@ -327,20 +410,23 @@ with tab3:
         )
         
         # 显示各级消耗详情
-        st.subheader("各级消耗详情")
-        
-        detail_df = pd.DataFrame(st.session_state.weapon_detail_data)
-        st.dataframe(
-            detail_df,
-            column_config={
-                "升级区间": "升级区间",
-                "所需碎片": st.column_config.NumberColumn("所需碎片"),
-                "说明": "说明"
-            },
-            use_container_width=True,
-            hide_index=True
-        )
+        if st.session_state.weapon_detail_data:
+            st.subheader("各级消耗详情")
+            
+            detail_df = pd.DataFrame(st.session_state.weapon_detail_data)
+            st.dataframe(
+                detail_df,
+                column_config={
+                    "升级区间": "升级区间",
+                    "所需碎片": st.column_config.NumberColumn("所需碎片"),
+                    "说明": "说明"
+                },
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("没有升级步骤需要消耗（当前等级与目标等级相同）")
 
 # 底部信息
 st.markdown("---")
-st.caption("装备锻造消耗计算器 v1.3 | 支持装备锻造和专武升级计算（修正版）")
+st.caption("装备锻造消耗计算器 v1.4 | 支持装备锻造和专武升级计算（包含红色等级，可自定义红级消耗）")
