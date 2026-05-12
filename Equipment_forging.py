@@ -246,23 +246,6 @@ with tab3:
     # 定义扩展的等级列表（0-10级 + 红5级到红10级）
     extended_levels = [str(i) for i in range(11)] + [f"红{i}" for i in range(5, 11)]
     
-    # 显示红色等级升级的预设消耗（只读，来自开发者配置）
-    st.subheader("📜 红色等级升级消耗配置（预设值）")
-    # 将配置的消耗以表格形式展示给用户
-    red_cost_df = pd.DataFrame({
-        "升级区间": [
-            "10级 → 红5级",
-            "红5级 → 红6级",
-            "红6级 → 红7级",
-            "红7级 → 红8级",
-            "红8级 → 红9级",
-            "红9级 → 红10级"
-        ],
-        "所需专武碎片": RED_UPGRADE_COSTS
-    })
-    st.dataframe(red_cost_df, hide_index=True, use_container_width=True)
-    st.caption("注：以上消耗由开发者预设，不可在此页面修改。")
-    
     st.markdown("""
     ### 专武升级规则
     - **普通等级（0级 → 10级）**：第1级消耗50碎片，后续每级增加50碎片（固定规则）
