@@ -184,6 +184,6 @@ if st.button("🚀 计算", type="primary"):
     with col_res1:
         st.metric(f"每次{label_unit}总时长", format_hms(total_time_sec))
     with col_res2:
-        st.metric(f"加速时长内可{label_unit}士兵数", f"{soldiers_done:.2f} 名")
+        st.metric(f"消耗加速可{label_unit}士兵数", f"{soldiers_done:.2f} 名")
     with col_res3:
         st.metric(f"{label_unit}总积分", f"{total_points:.2f}")
