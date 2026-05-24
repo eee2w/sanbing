@@ -3,7 +3,7 @@ import pandas as pd
 
 # ============= Streamlit 网页应用 =============
 st.set_page_config(page_title="神兵玉石自动升级计算器", layout="wide")
-st.title("⚔️💎 神兵玉石自动升级计算器-钓鱼")
+st.title("⚔️💎 神兵玉石自动升级计算器-风采")
 
 # --- 模式选择（三选一）---
 mode = st.radio(
@@ -56,9 +56,9 @@ if mode == "性价比比较":
             )
         
         conversion_factor = st.number_input(
-            "一点全阵营属性 = 多少点单兵种属性（默认1%全士兵生命防御=1.5%单兵种加成，1%全士兵攻击破坏=2.1%单兵种加成，平均1%=1.8%）", 
+            "一点全阵营属性 = 多少点单兵种属性（默认1%全士兵生命防御=1.7%单兵种加成，1%全士兵攻击破坏=2.2%单兵种加成，平均1%=1.95%）", 
             min_value=0.0, 
-            value=1.80, 
+            value=1.95, 
             step=0.01,
             format="%.2f",
             help="将全阵营属性折算为单兵种属性的系数"
@@ -74,7 +74,7 @@ if mode == "性价比比较":
                 
                 st.success(f"计算结果：**1个琢玉刀 ≈ {knife_to_buckle:.2f} 个铜扣**")
                 
-                st.info("春风御鸢行推荐1刀<2.5铜扣时兑换铜扣（即1琢玉刀=0-2.5铜扣）")
+                st.info("推荐1刀<2.5铜扣时兑换铜扣（即1琢玉刀=0-2.5铜扣）")
                 with st.expander("查看计算过程"):
                     st.markdown(f"""
                     - 玉石：消耗 **{jade_knife_cost}** 个琢玉刀 → 提升 **{jade_attr_percent}*2%** 单兵种属性  
