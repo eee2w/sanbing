@@ -127,7 +127,7 @@ col1, col2 = st.columns(2)
 with col1:
     v_percent_str = st.text_input("训练速度 (%)", value="", placeholder="0.0", key="v_percent")
 with col2:
-    v_plus_percent_str = st.text_input("单兵种额外加成(%)(包括武将加成和兵机阁/议政堂)", value="", placeholder="0.0", key="v_plus")
+    v_plus_percent_str = st.text_input("单兵种额外加成(%)(包括武将和兵机阁/议政堂)", value="", placeholder="0.0", key="v_plus")
 
 col3, col4 = st.columns(2)
 with col3:
